@@ -1,5 +1,4 @@
 import arrow
-
 from sortedcontainers import SortedDict
 
 
@@ -31,9 +30,7 @@ class TimeSeries:
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             raise TypeError("Can't compare TimeSeries with {}".format(type(other)))
-        return (
-            self._data == other._data and self.default == other.default
-        )
+        return self._data == other._data and self.default == other.default
 
     def _get_previous(self, time):
         idx = self._data.bisect_left(time)

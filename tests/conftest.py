@@ -16,6 +16,4 @@ def smallts():
     for i in range(10):
         data[CURRENT + i * ONEHOUR] = i
 
-    return TimeSeries(
-        data=data
-    )
+    return TimeSeries(data=data)
