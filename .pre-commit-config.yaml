@@ -31,10 +31,13 @@
     -   id: python-safety-dependencies-check
         language: python
         language_version: python3
--   repo: https://github.com/pre-commit/mirrors-yapf
-    rev: v0.25.0
+-   repo: https://github.com/pre-commit/mirrors-isort
+    sha: "v4.3.18"
     hooks:
-    - id: yapf
-      args: [-i, -r]
-      language: python
-      language_version: python3
+    -   id: isort
+
+-   repo: https://github.com/ambv/black
+    rev: "19.3b0"
+    hooks:
+    - id: black
+      language_version: python3.6
