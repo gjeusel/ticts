@@ -1,12 +1,12 @@
 -r docs/requirements.txt
 -r requirements.txt
-
-pre-commit
 black
 codecov
 
 flake8
 isort
+
+pre-commit
 
 pytest >= 3.3.0
 pytest-cov

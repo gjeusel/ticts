@@ -61,7 +61,7 @@ class TimeSeries:
     def empty(self):
         return len(self) == 0
 
-    def set(self, time, value):
+    def set(self, time, value):  # noqa A003
         """Set the value for the time series.
 
         Args:

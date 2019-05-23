@@ -2,7 +2,7 @@ import os
 
 from pkg_resources import DistributionNotFound, get_distribution
 
-from .timeseries import TimeSeries
+from .timeseries import TimeSeries  # noqa: F401
 
 try:
     _dist = get_distribution("ticts")
