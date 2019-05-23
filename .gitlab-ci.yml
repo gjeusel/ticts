@@ -1,0 +1,80 @@
+image: python:3.6
+
+variables:
+    # Change pip's cache directory to be inside the project directory since we can only cache local items.
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache"
+
+    # URL for doc upload
+    DOC_UPLOAD: "http://something.com"
+
+# Pip's cache doesn't store the python packages
+# https://pip.pypa.io/en/stable/reference/pip_install/#caching
+# If you want to also cache the installed packages,
+# you have to install them in a virtualenv and cache it as well.
+cache:
+  paths:
+    - .cache/
+    - venv/
+  key: "$CI_PROJECT_ID"
+
+before_script:
+    # Verbosity:
+    - env |grep CI_
+    - pwd
+
+    ## SSH handle
+    #- mkdir -p ~/.ssh
+    #- echo "$SSH_CONFIG" >> ~/.ssh/config  # quote need so that pass variable with newlines
+    ## auto confirm RSA key fingerprint:
+    #- echo "StrictHostKeyChecking no" | cat - ~/.ssh/config > temp && mv temp ~/.ssh/config
+    #- echo "$SSH_PRIVATE_KEY" > ~/.ssh/myprivatekey
+    #- cat ~/.ssh/config
+    #- chmod 600 ~/.ssh/myprivatekey
+    #- eval $(ssh-agent -s) && ssh-add ~/.ssh/myprivatekey
+
+    ## Pip config:
+    #- mkdir -p ~/.pip
+    #- echo "$PIP_CONF" > ~/.pip/pip.conf
+
+    # Install your project
+    - pip install -U setuptools pbr virtualenv
+
+    - virtualenv venv
+    - source venv/bin/activate
+
+    - pip install -r requirements-dev.txt
+    - pip install --editable .
+
+stages:
+    - test
+    - build-doc
+    - deploy-doc
+
+pytest:
+    stage: test
+    script:
+        - py.test --cov ticts --cov-report term-missing --tb=native -n 13
+
+linter:
+    stage: test
+    script:
+        - pip install pre-commit
+        - pre-commit run --all-files
+
+build_doc:
+    stage: build-doc
+    script:
+        - python setup.py build_sphinx
+    artifacts:
+        paths:
+            - docs/build
+
+deploy_doc:
+    stage: deploy-doc
+    before_script:
+        - pwd && ls
+    script:
+        - cd docs/build/html && zip -r doc.zip *
+        - curl --fail --form docfile=@doc.zip $DOC_UPLOAD/$CI_PROJECT_NAME/master
+    only:
+        - master
