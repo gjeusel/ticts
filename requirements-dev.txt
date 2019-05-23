@@ -1,6 +1,7 @@
 -r docs/requirements.txt
 -r requirements.txt
 
+pre-commit
 black
 codecov
 
