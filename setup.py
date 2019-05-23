@@ -5,8 +5,4 @@ try:
 except ImportError:
     BuildDoc = None
 
-setup(
-    setup_requires=['pbr'],
-    pbr=True,
-    cmdclass={'build_sphinx': BuildDoc},
-)
+setup(setup_requires=["pbr"], pbr=True, cmdclass={"build_sphinx": BuildDoc})

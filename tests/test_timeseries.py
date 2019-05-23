@@ -5,7 +5,7 @@ from .conftest import CURRENT, ONEHOUR, ONEMIN
 
 
 class TestTimeSeriesGet:
-    @mock.patch('ticts.TimeSeries._get_previous')
+    @mock.patch("ticts.TimeSeries._get_previous")
     def test_timeseries_get_default_on_previous(self, _get_previous, smallts):
         smallts.get(CURRENT)
         assert _get_previous.call_count == 1
