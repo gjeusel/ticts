@@ -8,9 +8,9 @@ install:
 
 jobs:
   include:
-    - state: test
+    - stage: test
       script: pytest
-    - state: linter
+    - stage: linter
       script: pip install pre-commit=="v1.15.2" && pre-commit run --all-files
 
 after_success:
