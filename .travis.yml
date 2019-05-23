@@ -3,10 +3,16 @@ python:
   - 3.6
 
 install:
-    - pip install -r requirements-dev.txt
+    - pip install -U -r requirements-dev.txt
     - pip install .
 
-script: pytest
+jobs:
+  include:
+    - state: test
+      script: pytest
+    - state: linter
+      script: pip install pre-commit=="v1.15.2" && pre-commit run --all-files
+
 after_success:
   - codecov
 
