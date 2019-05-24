@@ -30,8 +30,14 @@ class TestTimeSeriesGetitem:
     def test_get_on_previous(self, smallts):
         assert smallts[CURRENT + ONEMIN] == 0
 
-    def test_get_on_previous_out_of_left_bound(self, smallts):
-        assert smallts[CURRENT - ONEMIN] == 0
+    def test_get_out_of_left_bound_raises_if_no_default(self, smallts):
+        with pytest.raises(IndexError):
+            smallts[CURRENT - ONEMIN]
+
+    def test_get_out_of_left_bound_return_default_if_default(
+            self, smallts_withdefault):
+        default = smallts_withdefault.default
+        assert smallts_withdefault[CURRENT - ONEMIN] == default
 
     def test_get_on_previous_out_of_right_bound(self, smallts):
         assert smallts[CURRENT + 10 * ONEHOUR] == 9
@@ -132,6 +138,78 @@ class TestTimeSeriesSetItem:
         first_time = deepcopy(smallts)
         smallts[CURRENT] = 1000
         assert first_time == smallts
+
+
+class TestTimeSeriesOperators:
+    def test_simple_add(self, smallts, smalldict):
+        ts = smallts + smallts
+        newdct = {key: value + value for key, value in smalldict.items()}
+        assert ts == TimeSeries(newdct)
+
+    def test_simple_add_one_float(self, smallts, smalldict):
+        ts = smallts + 1000
+        assert list(ts.values()) == list(range(1000, 1010))
+
+    def test_add_with_keys_differences(self, smallts_withdefault,
+                                       otherts_withdefault):
+        ts = smallts_withdefault + otherts_withdefault
+        assert ts[CURRENT + 1 * ONEHOUR] == 1 + otherts_withdefault.default
+        assert ts[CURRENT + 2 * ONEHOUR] == 2 + 1000
+        assert ts[CURRENT + 2 * ONEHOUR + 30 * ONEMIN] == 2 + 2000
+        assert ts[CURRENT + 3 * ONEHOUR] == 3 + 2000
+        assert ts[CURRENT + 4 * ONEHOUR] == 4 + 3000
+
+    def test_simple_sub(self, smallts):
+        ts = smallts - smallts
+        assert all([val == 0 for val in ts.values()])
+
+    def test_simple_sub_one_float(self, smallts):
+        ts = smallts - 1
+        assert list(ts.values()) == list(range(-1, 9))
+
+    def test_sub_with_keys_differences(self, smallts_withdefault,
+                                       otherts_withdefault):
+        ts = smallts_withdefault - otherts_withdefault
+        assert ts[CURRENT + 1 * ONEHOUR] == 1 - 900
+        assert ts[CURRENT + 2 * ONEHOUR] == 2 - 1000
+        assert ts[CURRENT + 2 * ONEHOUR + 30 * ONEMIN] == 2 - 2000
+        assert ts[CURRENT + 3 * ONEHOUR] == 3 - 2000
+        assert ts[CURRENT + 4 * ONEHOUR] == 4 - 3000
+
+    def test_floor_on_float(self, smallts):
+        ts = smallts.floor(2)
+        assert all([value <= 2 for value in ts.values()])
+
+    def test_floor_on_ts(self, smallts_withdefault, otherts_withdefault):
+        ts = smallts_withdefault.floor(otherts_withdefault)
+        assert ts[CURRENT + 1 * ONEHOUR] == 1
+        assert ts[CURRENT + 2 * ONEHOUR] == 2
+        assert ts[CURRENT + 2 * ONEHOUR + 30 * ONEMIN] == 2
+        assert ts[CURRENT + 3 * ONEHOUR] == 3
+        assert ts[CURRENT + 4 * ONEHOUR] == 4
+
+    def test_ceil_on_float(self, smallts):
+        ts = smallts.ceil(7)
+        assert all([value >= 7 for value in ts.values()])
+
+    def test_ceil_on_ts(self, smallts_withdefault, otherts_withdefault):
+        ts = smallts_withdefault.ceil(otherts_withdefault)
+        assert ts[CURRENT + ONEHOUR] == 900
+        assert ts[CURRENT + 2 * ONEHOUR] == 1000
+        assert ts[CURRENT + 2 * ONEHOUR + 30 * ONEMIN] == 2000
+        assert ts[CURRENT + 3 * ONEHOUR] == 2000
+        assert ts[CURRENT + 4 * ONEHOUR] == 3000
+
+    def test_ceil_on_ts_check_changing_default(self, smallts_withdefault,
+                                               otherts_withdefault):
+        otherts_withdefault.default = -10
+        ts = smallts_withdefault.ceil(otherts_withdefault)
+
+        assert ts[CURRENT + ONEHOUR] == 1
+        assert ts[CURRENT + 2 * ONEHOUR] == 1000
+        assert ts[CURRENT + 2 * ONEHOUR + 30 * ONEMIN] == 2000
+        assert ts[CURRENT + 3 * ONEHOUR] == 2000
+        assert ts[CURRENT + 4 * ONEHOUR] == 3000
 
 
 def test_timeseries_compact(smallts):

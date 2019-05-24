@@ -19,11 +19,32 @@ def smalldict():
 
 
 @pytest.fixture
-def smallts():
-    ts = TimeSeries()
-    for i in range(10):
-        ts[CURRENT + i * ONEHOUR] = i
-    return ts
+def smallts(smalldict):
+    return TimeSeries(smalldict)
+
+
+@pytest.fixture
+def smallts_withdefault(smalldict):
+    return TimeSeries(smalldict, default=10)
+
+
+@pytest.fixture
+def otherict():
+    return {
+        CURRENT + 2 * ONEHOUR: 1000,
+        CURRENT + 2 * ONEHOUR + 30 * ONEMIN: 2000,
+        CURRENT + 4 * ONEHOUR: 3000,
+    }
+
+
+@pytest.fixture
+def otherts(otherict):
+    return TimeSeries(otherict)
+
+
+@pytest.fixture
+def otherts_withdefault(otherict):
+    return TimeSeries(otherict, default=900)
 
 
 @pytest.fixture
