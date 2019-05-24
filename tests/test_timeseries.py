@@ -91,6 +91,24 @@ class TestTimeSeriesSetInterval:
         assert list(smallts.keys()) == expected_keys
         assert smallts[CURRENT + ONEMIN] == 1000
 
+    def test_set_interval_on_empty(self, emptyts):
+        emptyts.set_interval(CURRENT, CURRENT + ONEHOUR, 1)
+        assert emptyts[CURRENT] == 1
+        len(emptyts.keys()) == 1
+
+    def test_set_interval_on_empty_with_default(self, emptyts_withdefault):
+        emptyts_withdefault.set_interval(CURRENT, CURRENT + ONEHOUR, 1)
+        assert emptyts_withdefault[CURRENT] == 1
+        assert emptyts_withdefault[CURRENT +
+                                   ONEHOUR] == emptyts_withdefault.default
+        len(emptyts_withdefault.keys()) == 2
+
+    # def test_same_consecutive_set_interval(self, smallts):
+    #     smallts.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
+    #     first_time = deepcopy(smallts)
+    #     smallts.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
+    #     assert first_time == smallts
+
 
 def test_timeseries_set(smallts):
     smallts[CURRENT] = 1000
