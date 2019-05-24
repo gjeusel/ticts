@@ -9,7 +9,7 @@ install:
 jobs:
   include:
     - stage: test
-      script: pytest
+      script: pytest --cov-report=term-missing --cov=ticts
     - stage: linter
       script: pre-commit run --all-files
 
