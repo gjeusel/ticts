@@ -3,9 +3,19 @@ from sortedcontainers import SortedDict
 
 
 class TimeSeries(SortedDict):
-    def __init__(self, default=None, *args, **kwargs):
+    _default_interpolate = "previous"
+
+    def __init__(self, data={}, default=None):
         self.default = default
-        super().__init__(*args, **kwargs)
+
+        cleaned_data = data
+        iterable = (list, tuple, set)
+        if isinstance(data, iterable):
+            cleaned_data = {}
+            for key, value in data:
+                cleaned_data[key] = value
+
+        super().__init__(cleaned_data)
 
     def __setitem__(self, key, value):
         key = arrow.get(key)
@@ -24,11 +34,22 @@ class TimeSeries(SortedDict):
             interpolate (str): interpolate operator among ["previous", "linear"]
         """
 
-        interpolate = "linear"
-        if len(key) == 2:
-            key, interpolate = key
-        elif len(key) > 2:
-            raise KeyError
+        interpolate = self._default_interpolate
+
+        if hasattr(key, '__len__'):
+            if len(key) == 2:
+                key, interpolate = key
+            elif len(key) > 2:
+                raise KeyError
+
+        if isinstance(key, slice):
+            return self.slice(key.start, key.stop, interpolate)
+
+        if self.empty:
+            if self.default:
+                return self.default
+            else:
+                raise KeyError
 
         if interpolate.lower() == "previous":
             fn = self._get_previous
@@ -37,16 +58,34 @@ class TimeSeries(SortedDict):
         else:
             raise ValueError("'{}' interpolation unknown.".format(interpolate))
 
+        key = arrow.get(key)
         return fn(key)
 
     def _get_previous(self, time):
+        if time in self.keys():
+            return super().__getitem__(time)
+
+        # In this case, bisect_left == bisect_right
         idx = self.bisect_left(time)
-        idx = max(0, idx - 1)
+        if idx > 0:
+            idx = idx - 1
         time_idx = self.keys()[idx]
         return super().__getitem__(time_idx)
 
     def _get_linear_interpolate(self, time):
         raise NotImplementedError
+
+    def slice(self, start, end, interpolate=_default_interpolate):  # noqa A003
+        start = arrow.get(start)
+        end = arrow.get(end)
+
+        newts = TimeSeries(default=self.default)
+
+        for key, value in self.items():
+            if start <= key and end > key:
+                newts[key] = value
+
+        return newts
 
     @property
     def empty(self):
