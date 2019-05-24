@@ -122,9 +122,16 @@ class TestTimeSeriesSetInterval:
         assert first_time == smallts
 
 
-def test_timeseries_set(smallts):
-    smallts[CURRENT] = 1000
-    assert smallts[CURRENT] == 1000
+class TestTimeSeriesSetItem:
+    def test_simple_setitem(self, smallts):
+        smallts[CURRENT] = 1000
+        assert smallts[CURRENT] == 1000
+
+    def test_consecutive_setitem(self, smallts):
+        smallts[CURRENT] = 1000
+        first_time = deepcopy(smallts)
+        smallts[CURRENT] = 1000
+        assert first_time == smallts
 
 
 def test_timeseries_compact(smallts):
