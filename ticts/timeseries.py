@@ -27,14 +27,6 @@ class TimeSeries(SortedDict):
         self.default = kwargs.pop('default', None)
         super().__init__(*args, **kwargs)
 
-        # # Monkey Patching operations
-        # operations = [
-        #     '__add__', '__sub__', '__mul__', '__div__', '__min__', '__max__'
-        # ]
-        # for operation in operations:
-        #     setattr(self, operation,
-        #             lambda x: self._operate(x, getattr(operator, operation)))
-
     def __setitem__(self, key, value):
         key = arrow.get(key)
         super().__setitem__(key, value)
