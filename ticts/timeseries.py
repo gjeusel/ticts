@@ -109,6 +109,8 @@ class TimeSeries(SortedDict):
                 if not entered_bound:
                     continue
                 else:
+                    if key == end:
+                        prev_value = val
                     break
 
             entered_bound = True

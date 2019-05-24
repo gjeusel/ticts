@@ -61,6 +61,16 @@ class TestTimeSeriesGetitem:
         assert smallts[CURRENT:CURRENT + 2 * ONEHOUR] == expected_ts
 
 
+class TestTimeSeriesCopy:
+    def test_copy(self, smallts):
+        copied = copy(smallts)
+        assert copied == smallts
+
+    def test_deepcopy(self, smallts):
+        deepcopied = deepcopy(smallts)
+        assert deepcopied == smallts
+
+
 class TestTimeSeriesSetInterval:
     def test_single_set_interval_end_on_last_key(self, smallts):
         smallts.set_interval(CURRENT + ONEHOUR, CURRENT + 9 * ONEHOUR, 1000)
@@ -105,11 +115,11 @@ class TestTimeSeriesSetInterval:
                                    ONEHOUR] == emptyts_withdefault.default
         len(emptyts_withdefault.keys()) == 2
 
-    # def test_same_consecutive_set_interval(self, smallts):
-    #     smallts.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
-    #     first_time = deepcopy(smallts)
-    #     smallts.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
-    #     assert first_time == smallts
+    def test_same_consecutive_set_interval(self, smallts):
+        smallts.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
+        first_time = deepcopy(smallts)
+        smallts.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
+        assert first_time == smallts
 
 
 def test_timeseries_set(smallts):
@@ -120,13 +130,3 @@ def test_timeseries_set(smallts):
 def test_timeseries_compact(smallts):
     smallts[CURRENT + ONEMIN] = 0
     assert (CURRENT + ONEMIN) not in smallts.compact().keys()
-
-
-class TestTimeSeriesCopy:
-    def test_copy(self, smallts):
-        copied = copy(smallts)
-        assert copied == smallts
-
-    def test_deepcopy(self, smallts):
-        deepcopied = deepcopy(smallts)
-        assert deepcopied == smallts
