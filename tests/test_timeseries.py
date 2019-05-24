@@ -1,3 +1,4 @@
+from copy import copy, deepcopy
 from unittest import mock
 
 import pytest
@@ -8,12 +9,13 @@ from .conftest import CURRENT, ONEHOUR, ONEMIN
 
 
 class TestTimeSeriesInit:
-    def test_with_data_as_dict(self, smalldict):
-        ts = TimeSeries(data=smalldict)
+    def test_with_dict(self, smalldict):
+        ts = TimeSeries(smalldict)
         assert ts[CURRENT + ONEHOUR] == 1
 
     def test_with_data_as_tuple(self):
-        ts = TimeSeries(data=((CURRENT, 0), (CURRENT + ONEHOUR, 1)))
+        mytuple = ((CURRENT, 0), (CURRENT + ONEHOUR, 1))
+        ts = TimeSeries(mytuple)
         assert ts[CURRENT] == 0
         assert ts[CURRENT + ONEHOUR] == 1
         assert len(ts) == 2
@@ -53,7 +55,7 @@ class TestTimeSeriesGetitem:
             CURRENT + ONEHOUR: 1,
         }
         expected_ts = TimeSeries(
-            data=data,
+            data,
             default=smallts.default,
         )
         assert smallts[CURRENT:CURRENT + 2 * ONEHOUR] == expected_ts
@@ -118,3 +120,13 @@ def test_timeseries_set(smallts):
 def test_timeseries_compact(smallts):
     smallts[CURRENT + ONEMIN] = 0
     assert (CURRENT + ONEMIN) not in smallts.compact().keys()
+
+
+class TestTimeSeriesCopy:
+    def test_copy(self, smallts):
+        copied = copy(smallts)
+        assert copied == smallts
+
+    def test_deepcopy(self, smallts):
+        deepcopied = deepcopy(smallts)
+        assert deepcopied == smallts
