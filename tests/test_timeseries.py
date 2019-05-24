@@ -1,4 +1,3 @@
-from copy import deepcopy
 from unittest import mock
 
 import pytest
