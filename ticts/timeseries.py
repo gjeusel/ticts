@@ -11,6 +11,11 @@ class TimeSeries(SortedDict):
     _default_interpolate = "previous"
 
     def __init__(self, *args, **kwargs):
+        # __init__(self, default=None, *args, **kwargs) would ne painful to use
+        #
+        # __init__(self, data={}, default=None, *args, **kwargs) leads to
+        # issues in setting the self._key in SortedDict.__init__
+
         self.default = kwargs.pop('default', None)
         super().__init__(*args, **kwargs)
 
