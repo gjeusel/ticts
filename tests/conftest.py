@@ -11,8 +11,8 @@ ONEMIN = timedelta(minutes=1)
 
 @pytest.fixture
 def smallts():
-    data = {}
+    ts = TimeSeries()
     for i in range(10):
-        data[CURRENT + i * ONEHOUR] = i
+        ts[CURRENT + i * ONEHOUR] = i
 
-    return TimeSeries(data=data)
+    return ts
