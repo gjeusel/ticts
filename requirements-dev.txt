@@ -5,7 +5,7 @@ codecov
 flake8
 isort
 
-pre-commit
+pre-commit==1.15.2
 
 pytest >= 3.3.0
 pytest-cov
