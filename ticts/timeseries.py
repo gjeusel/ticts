@@ -10,17 +10,9 @@ logger = logging.getLogger(__name__)
 class TimeSeries(SortedDict):
     _default_interpolate = "previous"
 
-    def __init__(self, data={}, default=None):
-        self.default = default
-
-        cleaned_data = data
-        iterable = (list, tuple, set)
-        if isinstance(data, iterable):
-            cleaned_data = {}
-            for key, value in data:
-                cleaned_data[key] = value
-
-        super().__init__(cleaned_data)
+    def __init__(self, *args, **kwargs):
+        self.default = kwargs.pop('default', None)
+        super().__init__(*args, **kwargs)
 
     def __setitem__(self, key, value):
         key = arrow.get(key)
