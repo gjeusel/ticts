@@ -2,6 +2,7 @@ from copy import deepcopy
 from unittest import mock
 
 import pytest
+
 from ticts import TimeSeries
 
 from .conftest import CURRENT, ONEHOUR, ONEMIN
@@ -46,7 +47,8 @@ class TestTimeSeriesGetitem:
         with pytest.raises(NotImplementedError):
             smallts[CURRENT, "linear"]
 
-    def test_get_on_slice_exclude_upper_bound(self, smallts):
+    def test_get_on_slice_exclude_upper_bound_include_lower_bound(
+            self, smallts):
         data = {
             CURRENT: 0,
             CURRENT + ONEHOUR: 1,
@@ -64,6 +66,5 @@ def test_timeseries_set(smallts):
 
 
 def test_timeseries_compact(smallts):
-    modified = deepcopy(smallts)
-    modified.set(CURRENT + ONEMIN, 0)
-    assert smallts == modified.compact()
+    smallts[CURRENT + ONEMIN] = 0
+    assert (CURRENT + ONEMIN) not in smallts.compact().keys()
