@@ -59,6 +59,39 @@ class TestTimeSeriesGetitem:
         assert smallts[CURRENT:CURRENT + 2 * ONEHOUR] == expected_ts
 
 
+class TestTimeSeriesSetInterval:
+    def test_single_set_interval_end_on_last_key(self, smallts):
+        smallts.set_interval(CURRENT + ONEHOUR, CURRENT + 9 * ONEHOUR, 1000)
+        expected_keys = [CURRENT, CURRENT + ONEHOUR, CURRENT + 9 * ONEHOUR]
+        assert list(smallts.keys()) == expected_keys
+        assert smallts[CURRENT + ONEHOUR] == 1000
+
+    def test_single_set_interval_start_on_first_key(self, smallts):
+        smallts.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
+        expected_keys = [CURRENT, CURRENT + 9 * ONEHOUR]
+        assert list(smallts.keys()) == expected_keys
+        assert smallts[CURRENT] == 1000
+
+    def test_single_set_interval_end_over_last_key(self, smallts):
+        last_val = smallts[CURRENT + 9 * ONEHOUR]
+        smallts.set_interval(CURRENT + ONEHOUR, CURRENT + 10 * ONEHOUR, 1000)
+        expected_keys = [CURRENT, CURRENT + ONEHOUR, CURRENT + 10 * ONEHOUR]
+        assert list(smallts.keys()) == expected_keys
+        assert smallts[CURRENT + 10 * ONEHOUR] == last_val
+
+    def test_single_set_interval_start_before_first_key(self, smallts):
+        smallts.set_interval(CURRENT - ONEHOUR, CURRENT + 9 * ONEHOUR, 1000)
+        expected_keys = [CURRENT - ONEHOUR, CURRENT + 9 * ONEHOUR]
+        assert list(smallts.keys()) == expected_keys
+        assert smallts[CURRENT - 1 * ONEHOUR] == 1000
+
+    def test_single_set_interval_on_bounds_not_being_keys(self, smallts):
+        smallts.set_interval(CURRENT + ONEMIN, CURRENT + 9 * ONEHOUR, 1000)
+        expected_keys = [CURRENT, CURRENT + ONEMIN, CURRENT + 9 * ONEHOUR]
+        assert list(smallts.keys()) == expected_keys
+        assert smallts[CURRENT + ONEMIN] == 1000
+
+
 def test_timeseries_set(smallts):
     smallts[CURRENT] = 1000
     assert smallts[CURRENT] == 1000

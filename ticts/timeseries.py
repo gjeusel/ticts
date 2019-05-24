@@ -88,6 +88,28 @@ class TimeSeries(SortedDict):
 
         return newts
 
+    def set_interval(self, start, end, value):
+        entered_bound = False
+        to_delete_keys = []  # avoid changing self while looping
+        prev_value = []  # keep track of previous val
+        for key, val in self.items():
+            in_bound = (key >= start and key < end)
+            if not in_bound:
+                if not entered_bound:
+                    continue
+                else:
+                    break
+
+            entered_bound = True
+            prev_value = val
+            to_delete_keys.append(key)
+
+        for key in to_delete_keys:
+            self.pop(key)
+
+        self[start] = value
+        self[end] = prev_value  # don't forget to set back last val
+
     @property
     def empty(self):
         return len(self) == 0
