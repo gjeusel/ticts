@@ -1,6 +1,10 @@
+import logging
+
 import arrow
 
 from sortedcontainers import SortedDict
+
+logger = logging.getLogger(__name__)
 
 
 class TimeSeries(SortedDict):
@@ -93,6 +97,10 @@ class TimeSeries(SortedDict):
             self[start] = value
             if self.default:
                 self[end] = self.default
+            else:
+                msg = ('You may want to set a default when setting intervals'
+                       ' on empty TimeSeries')
+                logger.info(msg)
             return
 
         entered_bound = False
