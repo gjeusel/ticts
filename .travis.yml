@@ -11,7 +11,7 @@ jobs:
     - stage: test
       script: pytest
     - stage: linter
-      script: pip install pre-commit=="v1.15.2" && pre-commit run --all-files
+      script: pre-commit run --all-files
 
 after_success:
   - codecov

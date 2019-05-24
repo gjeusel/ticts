@@ -1,6 +1,5 @@
 -r docs/requirements.txt
 -r requirements.txt
-black
 codecov
 
 flake8
@@ -11,3 +10,4 @@ pre-commit
 pytest >= 3.3.0
 pytest-cov
 pytest-xdist
+yapf

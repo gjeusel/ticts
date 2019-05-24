@@ -36,12 +36,13 @@ repos:
       language: python
       language_version: python3.6
 
-  - repo: https://github.com/ambv/black
-    rev: "19.3b0"
+  - repo: https://github.com/pre-commit/mirrors-yapf
+    rev: "v0.25.0"
     hooks:
-    - id: black
+    - id: yapf
+      args: [-i, -r]
       language: python
-      language_version: python3.6
+      language_version: python3
 
   #- repo: https://github.com/Lucas-C/pre-commit-hooks-bandit
   #  sha: "v1.0.3"

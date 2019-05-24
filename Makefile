@@ -7,13 +7,13 @@ all: dev style sdists doc test-unit test-coverage
 
 dev: python setup.py develop
 
-style: isort black
+style: isort yapf
 
 isort:
 	isort -y
 
-black:
-	black $(MODULE)
+yapf:
+	yapf $(MODULE)
 
 flake8:
 	python setup.py flake8
