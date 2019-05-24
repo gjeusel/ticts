@@ -1,10 +1,18 @@
 import logging
+import operator
 
 import arrow
 
 from sortedcontainers import SortedDict
 
 logger = logging.getLogger(__name__)
+
+
+def operation_factory(operation):
+    def fn_operation(self, other):
+        return self._operate(other, getattr(operator, operation))
+
+    return fn_operation
 
 
 class TimeSeries(SortedDict):
@@ -18,6 +26,14 @@ class TimeSeries(SortedDict):
 
         self.default = kwargs.pop('default', None)
         super().__init__(*args, **kwargs)
+
+        # # Monkey Patching operations
+        # operations = [
+        #     '__add__', '__sub__', '__mul__', '__div__', '__min__', '__max__'
+        # ]
+        # for operation in operations:
+        #     setattr(self, operation,
+        #             lambda x: self._operate(x, getattr(operator, operation)))
 
     def __setitem__(self, key, value):
         key = arrow.get(key)
@@ -52,6 +68,15 @@ class TimeSeries(SortedDict):
                 return self.default
             else:
                 raise KeyError
+
+        if key < self.keys()[0]:
+            if self.default:
+                return self.default
+            else:
+                msg = (
+                    "'default' value is not set, hence no values are set before"
+                    " the oldest measurement.")
+                raise IndexError(msg)
 
         if interpolate.lower() == "previous":
             fn = self._get_previous
@@ -122,6 +147,58 @@ class TimeSeries(SortedDict):
 
         self[start] = value
         self[end] = prev_value  # don't forget to set back last val
+
+    def _operate(self, other, operator):
+        if isinstance(other, self.__class__):
+            return self._operate_on_ts(other, operator)
+        else:
+            return self._operate_on_one_value(other, operator)
+
+    def _operate_on_ts(self, other, operator):
+        if not isinstance(other, self.__class__):
+            raise TypeError
+
+        all_keys = set(self.keys()).union(set(other.keys()))
+
+        default = None
+        if self.default and other.default:
+            default = operator(self.default, other.default)
+
+        ts = TimeSeries(default=default)
+        for key in all_keys:
+            ts[key] = operator(self[key], other[key])
+
+        return ts
+
+    def _operate_on_one_value(self, value, operator):
+        sample_value = self.values()[0]
+        try:
+            operator(value, sample_value)
+        except Exception:
+            msg = "Can't apply {} on {} with {}"
+            raise TypeError(
+                msg.format(operator.__name__, type(sample_value), type(value)))
+
+        default = None
+        if self.default:
+            default = operator(self.default, value)
+
+        ts = TimeSeries(default=default)
+        for key in self.keys():
+            ts[key] = operator(self[key], value)
+
+        return ts
+
+    __add__ = operation_factory('__add__')
+    __sub__ = operation_factory('__sub__')
+    __mul__ = operation_factory('__mul__')
+    __div__ = operation_factory('__div__')
+
+    def floor(self, other):
+        return self._operate(other, min)
+
+    def ceil(self, other):
+        return self._operate(other, max)
 
     @property
     def empty(self):
