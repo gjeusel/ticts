@@ -1,4 +1,5 @@
 import arrow
+
 from sortedcontainers import SortedDict
 
 
@@ -96,7 +97,7 @@ class TimeSeries(SortedDict):
         same value are discarded."""
         ts = TimeSeries(default=self.default)
         for time, value in self.items():
-            should_set_it = ts.empty or (ts.get(time) != value)
+            should_set_it = ts.empty or (ts[time] != value)
             if should_set_it:
-                ts.set(time, value)
+                ts[time] = value
         return ts
