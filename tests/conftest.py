@@ -7,6 +7,7 @@ from ticts import TimeSeries
 
 CURRENT = Arrow(2019, 1, 1)
 ONEHOUR = timedelta(hours=1)
+HALFHOUR = timedelta(minutes=30)
 ONEMIN = timedelta(minutes=1)
 
 

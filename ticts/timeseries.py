@@ -1,5 +1,6 @@
 import logging
 import operator
+from datetime import timedelta
 
 import arrow
 
@@ -18,12 +19,18 @@ def operation_factory(operation):
 class TimeSeries(SortedDict):
     _default_interpolate = "previous"
 
-    def __init__(self, *args, **kwargs):
-        # __init__(self, default=None, *args, **kwargs) would ne painful to use
-        #
-        # __init__(self, data={}, default=None, *args, **kwargs) leads to
-        # issues in setting the self._key in SortedDict.__init__
+    # def __init__(self, data=None, default=None, *args, **kwargs):
+    #     # __init__(self, default=None, *args, **kwargs) would ne painful to use
+    #     #
+    #     # __init__(self, data={}, default=None, *args, **kwargs) leads to
+    #     # issues in setting the self._key in SortedDict.__init__
+    #     self.default = default
+    #     if isinstance(data, (set, tuple, list)):
+    #         super().__init__(*[data, *args], **kwargs)
+    #     elif isinstance(data, dict):
+    #         super().__init__(data, *args, **kwargs)
 
+    def __init__(self, *args, **kwargs):
         self.default = kwargs.pop('default', None)
         super().__init__(*args, **kwargs)
 
@@ -70,6 +77,10 @@ class TimeSeries(SortedDict):
                     " the oldest measurement.")
                 raise IndexError(msg)
 
+        # If the key is already defined:
+        if key in self.keys():
+            return super().__getitem__(key)
+
         if interpolate.lower() == "previous":
             fn = self._get_previous
         elif interpolate.lower() == "linear":
@@ -81,9 +92,6 @@ class TimeSeries(SortedDict):
         return fn(key)
 
     def _get_previous(self, time):
-        if time in self.keys():
-            return super().__getitem__(time)
-
         # In this case, bisect_left == bisect_right
         idx = self.bisect_left(time)
         if idx > 0:
@@ -204,4 +212,26 @@ class TimeSeries(SortedDict):
             should_set_it = ts.empty or (ts[time] != value)
             if should_set_it:
                 ts[time] = value
+        return ts
+
+    def sample(self,
+               freq,
+               start=None,
+               end=None,
+               interpolate=_default_interpolate):
+        if not isinstance(freq, timedelta):
+            msg = 'Freq should be of instance timedelta, got {}'
+            raise TypeError(msg.format(type(freq)))
+
+        if not start:
+            start = self.keys()[0]
+        if not end:
+            # Assumption last interval is [end : end + freq[
+            end = self.keys()[-1] + freq
+
+        ts = TimeSeries(default=self.default)
+        for i in range(0, int((end - start) / freq)):
+            dt = start + i * freq
+            ts[dt] = self[dt, interpolate]
+
         return ts
