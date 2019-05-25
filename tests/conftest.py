@@ -2,7 +2,6 @@ from datetime import timedelta
 
 import pytest
 from arrow import Arrow
-
 from ticts import TimeSeries
 
 CURRENT = Arrow(2019, 1, 1)
