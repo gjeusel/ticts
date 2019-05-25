@@ -11,7 +11,7 @@ jobs:
     - stage: test
       script: pytest --cov-report=term-missing --cov=ticts
     - stage: linter
-      script: pre-commit run --all-files
+      script: pre-commit run --all-files --show-diff-on-failure
 
 after_success:
   - codecov
