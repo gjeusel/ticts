@@ -25,7 +25,7 @@ class TestTimeSeriesInit:
 class TestTimeSeriesGetitem:
     @mock.patch("ticts.TimeSeries._get_previous")
     def test_get_default_on_previous(self, _get_previous, smallts):
-        smallts[CURRENT]
+        smallts[CURRENT + ONEMIN]
         assert _get_previous.call_count == 1
 
     def test_get_on_previous(self, smallts):
@@ -53,7 +53,7 @@ class TestTimeSeriesGetitem:
 
     def test_get_linear_interpolate_raises(self, smallts):
         with pytest.raises(NotImplementedError):
-            smallts[CURRENT, "linear"]
+            smallts[CURRENT + ONEMIN, "linear"]
 
     def test_get_on_slice_exclude_upper_bound_include_lower_bound(
             self, smallts):
