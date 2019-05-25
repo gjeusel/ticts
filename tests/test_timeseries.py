@@ -1,11 +1,12 @@
 from copy import copy, deepcopy
+from datetime import timedelta
 from unittest import mock
 
 import pytest
 
 from ticts import TimeSeries
 
-from .conftest import CURRENT, ONEHOUR, ONEMIN
+from .conftest import CURRENT, HALFHOUR, ONEHOUR, ONEMIN
 
 
 class TestTimeSeriesInit:
@@ -215,3 +216,41 @@ class TestTimeSeriesOperators:
 def test_timeseries_compact(smallts):
     smallts[CURRENT + ONEMIN] = 0
     assert (CURRENT + ONEMIN) not in smallts.compact().keys()
+
+
+class TestTimeSeriesSample:
+    def test_simple_sample_on_default(self, smallts):
+        ts = smallts.sample(HALFHOUR)
+        expected_dict = {
+            **smallts,
+            **{
+                key + HALFHOUR: smallts[key]
+                for key in list(smallts.keys())[:-1]
+            }
+        }
+        expected_ts = TimeSeries(expected_dict, default=smallts.default)
+        assert ts == expected_ts
+
+    def test_sample_raises_when_no_default_and_start_lower_than_all_keys(
+            self, smallts):
+        with pytest.raises(IndexError):
+            smallts.sample(freq=HALFHOUR, start=CURRENT - ONEHOUR)
+
+    def test_sample_with_start_lower_than_all_keys(self, smallts_withdefault):
+        ts = smallts_withdefault.sample(freq=HALFHOUR, start=CURRENT - ONEHOUR)
+        default = smallts_withdefault.default
+        assert ts[CURRENT - ONEHOUR] == default
+        assert ts[CURRENT - HALFHOUR] == default
+        assert ts[CURRENT] == 0
+        assert CURRENT + HALFHOUR in ts.keys()
+
+    @pytest.mark.parametrize(
+        'freq', [ONEMIN, 10 * ONEMIN,
+                 timedelta(seconds=10), ONEHOUR])
+    def test_sample_on_freq_with_end_and_start_in_bound(self, otherts, freq):
+        start = CURRENT + 2 * ONEHOUR + HALFHOUR
+        end = CURRENT + 3 * ONEHOUR + HALFHOUR
+        ts = otherts.sample(freq=freq, start=start, end=end)
+        assert list(ts.keys()) == [
+            start + i * freq for i in range(int((end - start) / freq))
+        ]
