@@ -3,7 +3,6 @@ from datetime import timedelta
 from unittest import mock
 
 import pytest
-
 from ticts import TimeSeries
 
 from .conftest import CURRENT, HALFHOUR, ONEHOUR, ONEMIN

@@ -1,7 +1,6 @@
 -r docs/requirements.txt
 -r requirements.txt
 codecov
-
 flake8
 isort
 
