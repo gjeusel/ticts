@@ -3,6 +3,7 @@ from datetime import timedelta
 from unittest import mock
 
 import pytest
+
 from ticts import TimeSeries
 
 from .conftest import CURRENT, HALFHOUR, ONEHOUR, ONEMIN
@@ -22,37 +23,59 @@ class TestTimeSeriesInit:
 
 
 class TestTimeSeriesGetitem:
+    available_interpolate = ['previous', 'linear']
+
+    # tests on corner cases
+
+    def test_getitem_out_of_left_bound_with_no_default_raises(self, smallts):
+        with pytest.raises(KeyError) as err:
+            smallts[CURRENT - ONEMIN]
+
+        assert 'default attribute is not set' in str(err)
+
+    @pytest.mark.parametrize('interpolate', available_interpolate)
+    def test_getitem_out_of_left_bound_with_default_return_default(
+            self, smallts_withdefault, interpolate):
+        value = smallts_withdefault[CURRENT - ONEMIN, interpolate]
+        assert value == smallts_withdefault.default
+
+    @pytest.mark.parametrize('interpolate', available_interpolate)
+    def test_getitem_on_empty_when_no_default_raises(self, emptyts,
+                                                     interpolate):
+        with pytest.raises(KeyError) as err:
+            emptyts[CURRENT - ONEMIN, interpolate]
+
+        assert str(
+            "default attribute is not set and timeseries is empty") in str(err)
+
+    # tests on '_get_previous'
+
     @mock.patch("ticts.TimeSeries._get_previous")
-    def test_get_default_on_previous(self, _get_previous, smallts):
+    def test_get_on_previous_is_default_interpolate(self, _get_previous,
+                                                    smallts):
         smallts[CURRENT + ONEMIN]
         assert _get_previous.call_count == 1
 
     def test_get_on_previous(self, smallts):
         assert smallts[CURRENT + ONEMIN] == 0
 
-    def test_get_out_of_left_bound_raises_if_no_default(self, smallts):
-        with pytest.raises(IndexError):
-            smallts[CURRENT - ONEMIN]
-
-    def test_get_out_of_left_bound_return_default_if_default(
-            self, smallts_withdefault):
-        default = smallts_withdefault.default
-        assert smallts_withdefault[CURRENT - ONEMIN] == default
-
     def test_get_on_previous_out_of_right_bound(self, smallts):
         assert smallts[CURRENT + 10 * ONEHOUR] == 9
 
-    def test_get_on_previous_on_emtpy_raises_keyerror(self, emptyts):
-        with pytest.raises(KeyError):
-            assert emptyts[CURRENT]
+    # tests on '_get_linear_interpolate'
 
-    def test_get_on_previous_on_emtpy_with_default_return_default(
-            self, emptyts_withdefault):
-        assert emptyts_withdefault[CURRENT] == emptyts_withdefault.default
+    @pytest.mark.parametrize('time_idx, expected', [
+        (CURRENT + HALFHOUR, 0.5),
+        (CURRENT + ONEHOUR + HALFHOUR, 1.5),
+        (CURRENT + 10 * ONEMIN, 0 + (1 - 0) * (10 * ONEMIN / ONEHOUR)),
+    ])
+    def test_get_linear_interpolate(self, smallts, time_idx, expected):
+        assert smallts[time_idx, 'linear'] == expected
 
-    def test_get_linear_interpolate_raises(self, smallts):
-        with pytest.raises(NotImplementedError):
-            smallts[CURRENT + ONEMIN, "linear"]
+    def test_get_linear_interpolate_out_of_right_bound(self, smallts):
+        assert smallts[CURRENT + 10 * ONEHOUR, 'linear'] == 9
+
+    # test on 'slice'
 
     def test_get_on_slice_exclude_upper_bound_include_lower_bound(
             self, smallts):
@@ -232,8 +255,10 @@ class TestTimeSeriesSample:
 
     def test_sample_raises_when_no_default_and_start_lower_than_all_keys(
             self, smallts):
-        with pytest.raises(IndexError):
+        with pytest.raises(KeyError) as err:
             smallts.sample(freq=HALFHOUR, start=CURRENT - ONEHOUR)
+
+        assert "default attribute is not set, can't deduce value" in str(err)
 
     def test_sample_with_start_lower_than_all_keys(self, smallts_withdefault):
         ts = smallts_withdefault.sample(freq=HALFHOUR, start=CURRENT - ONEHOUR)
