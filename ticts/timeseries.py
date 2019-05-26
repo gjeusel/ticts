@@ -3,6 +3,7 @@ import operator
 from datetime import timedelta
 
 import arrow
+
 from sortedcontainers import SortedDict
 
 logger = logging.getLogger(__name__)
@@ -17,17 +18,6 @@ def operation_factory(operation):
 
 class TimeSeries(SortedDict):
     _default_interpolate = "previous"
-
-    # def __init__(self, data=None, default=None, *args, **kwargs):
-    #     # __init__(self, default=None, *args, **kwargs) would ne painful to use
-    #     #
-    #     # __init__(self, data={}, default=None, *args, **kwargs) leads to
-    #     # issues in setting the self._key in SortedDict.__init__
-    #     self.default = default
-    #     if isinstance(data, (set, tuple, list)):
-    #         super().__init__(*[data, *args], **kwargs)
-    #     elif isinstance(data, dict):
-    #         super().__init__(data, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         self.default = kwargs.pop('default', None)
@@ -61,20 +51,19 @@ class TimeSeries(SortedDict):
         if isinstance(key, slice):
             return self.slice(key.start, key.stop, interpolate)
 
+        basemsg = "Getting {} but default attribute is not set".format(key)
         if self.empty:
             if self.default:
                 return self.default
             else:
-                raise KeyError
+                raise KeyError("{} and timeseries is empty".format(basemsg))
 
         if key < self.keys()[0]:
             if self.default:
                 return self.default
             else:
-                msg = (
-                    "'default' value is not set, hence no values are set before"
-                    " the oldest measurement.")
-                raise IndexError(msg)
+                msg = "{}, can't deduce value before the oldest measurement"
+                raise KeyError(msg.format(basemsg))
 
         # If the key is already defined:
         if key in self.keys():
@@ -92,14 +81,31 @@ class TimeSeries(SortedDict):
 
     def _get_previous(self, time):
         # In this case, bisect_left == bisect_right
-        idx = self.bisect_left(time)
-        if idx > 0:
-            idx = idx - 1
-        time_idx = self.keys()[idx]
+        # And idx > 0 as we already handled other cases
+        previous_idx = self.bisect_left(time) - 1
+        time_idx = self.keys()[previous_idx]
         return super().__getitem__(time_idx)
 
     def _get_linear_interpolate(self, time):
-        raise NotImplementedError
+        idx = self.bisect_left(time)
+        previous_time_idx = self.keys()[idx - 1]
+
+        # out of right bound case:
+        if idx == len(self):
+            msg = "Can't interpolate out of right bound, returning value of right bound."
+            logger.info(msg)
+            return super().__getitem__(previous_time_idx)
+
+        next_time_idx = self.keys()[idx]
+
+        previous_value = super().__getitem__(previous_time_idx)
+        next_value = super().__getitem__(next_time_idx)
+
+        coeff = (time - previous_time_idx) / (
+            next_time_idx - previous_time_idx)
+
+        value = previous_value + coeff * (next_value - previous_value)
+        return value
 
     def slice(self, start, end, interpolate=_default_interpolate):  # noqa A003
         start = arrow.get(start)
