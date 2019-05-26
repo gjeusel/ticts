@@ -3,7 +3,6 @@ import operator
 from datetime import timedelta
 
 import arrow
-
 from sortedcontainers import SortedDict
 
 logger = logging.getLogger(__name__)
