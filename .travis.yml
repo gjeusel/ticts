@@ -4,8 +4,13 @@ python:
   - 3.6
 
 install:
+  - pip install -U pip wheel
   - pip install -U -r requirements-dev.txt
   - pip install .
+
+cache:
+  directories:
+    - $HOME/.cache/pip
 
 stages:
   - test
