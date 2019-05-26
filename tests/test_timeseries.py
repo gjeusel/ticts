@@ -33,6 +33,11 @@ class TestTimeSeriesSetItem:
         smallts[CURRENT] = 1000
         assert first_time == smallts
 
+    @mock.patch("ticts.TimeSeries.set_interval")
+    def test_setitem_on_slice_calls_set_interval(self, set_interval, smallts):
+        smallts[CURRENT:CURRENT + 2 * ONEHOUR] = 1000
+        assert set_interval.call_count == 1
+
 
 class TestTimeSeriesCopy:
     def test_copy(self, smallts):

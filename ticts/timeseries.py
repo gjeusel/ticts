@@ -24,6 +24,8 @@ class TimeSeries(SortedDict):
         super().__init__(*args, **kwargs)
 
     def __setitem__(self, key, value):
+        if isinstance(key, slice):
+            return self.set_interval(key.start, key.stop, value)
         key = arrow.get(key)
         super().__setitem__(key, value)
 
