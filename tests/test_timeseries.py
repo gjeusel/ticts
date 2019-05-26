@@ -22,6 +22,33 @@ class TestTimeSeriesInit:
         assert len(ts) == 2
 
 
+class TestTimeSeriesSetItem:
+    def test_simple_setitem(self, smallts):
+        smallts[CURRENT] = 1000
+        assert smallts[CURRENT] == 1000
+
+    def test_consecutive_setitem(self, smallts):
+        smallts[CURRENT] = 1000
+        first_time = deepcopy(smallts)
+        smallts[CURRENT] = 1000
+        assert first_time == smallts
+
+
+class TestTimeSeriesCopy:
+    def test_copy(self, smallts):
+        copied = copy(smallts)
+        assert copied == smallts
+
+    def test_deepcopy(self, smallts):
+        deepcopied = deepcopy(smallts)
+        assert deepcopied == smallts
+
+
+def test_timeseries_compact(smallts):
+    smallts[CURRENT + ONEMIN] = 0
+    assert (CURRENT + ONEMIN) not in smallts.compact().keys()
+
+
 class TestTimeSeriesGetitem:
     available_interpolate = ['previous', 'linear']
 
@@ -90,16 +117,6 @@ class TestTimeSeriesGetitem:
         assert smallts[CURRENT:CURRENT + 2 * ONEHOUR] == expected_ts
 
 
-class TestTimeSeriesCopy:
-    def test_copy(self, smallts):
-        copied = copy(smallts)
-        assert copied == smallts
-
-    def test_deepcopy(self, smallts):
-        deepcopied = deepcopy(smallts)
-        assert deepcopied == smallts
-
-
 class TestTimeSeriesSetInterval:
     def test_single_set_interval_end_on_last_key(self, smallts):
         smallts.set_interval(CURRENT + ONEHOUR, CURRENT + 9 * ONEHOUR, 1000)
@@ -148,18 +165,6 @@ class TestTimeSeriesSetInterval:
         smallts.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
         first_time = deepcopy(smallts)
         smallts.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
-        assert first_time == smallts
-
-
-class TestTimeSeriesSetItem:
-    def test_simple_setitem(self, smallts):
-        smallts[CURRENT] = 1000
-        assert smallts[CURRENT] == 1000
-
-    def test_consecutive_setitem(self, smallts):
-        smallts[CURRENT] = 1000
-        first_time = deepcopy(smallts)
-        smallts[CURRENT] = 1000
         assert first_time == smallts
 
 
@@ -233,11 +238,6 @@ class TestTimeSeriesOperators:
         assert ts[CURRENT + 2 * ONEHOUR + 30 * ONEMIN] == 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 2000
         assert ts[CURRENT + 4 * ONEHOUR] == 3000
-
-
-def test_timeseries_compact(smallts):
-    smallts[CURRENT + ONEMIN] = 0
-    assert (CURRENT + ONEMIN) not in smallts.compact().keys()
 
 
 class TestTimeSeriesSample:
