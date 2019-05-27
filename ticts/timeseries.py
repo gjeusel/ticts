@@ -205,12 +205,28 @@ class TimeSeries(SortedDict):
     __sub__ = operation_factory('__sub__')
     __mul__ = operation_factory('__mul__')
     __div__ = operation_factory('__div__')
+    __lt__ = operation_factory('__lt__')
+    __le__ = operation_factory('__le__')
+    __gt__ = operation_factory('__gt__')
+    __ge__ = operation_factory('__ge__')
 
     def floor(self, other):
         return self._operate(other, min)
 
     def ceil(self, other):
         return self._operate(other, max)
+
+    def conditional_update(self, other, condition):
+        if not isinstance(other, TimeSeries):
+            msg = 'other should be of type TimeSeries, got {}'
+            raise TypeError(msg.format(type(other)))
+        if not all([isinstance(value, bool) for value in condition.values()]):
+            msg = 'The values of condition should all be boolean.'
+            raise TypeError(msg)
+
+        for key, value in other.items():
+            if condition[key]:
+                self[key] = value
 
     @property
     def empty(self):

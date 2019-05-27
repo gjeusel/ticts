@@ -39,6 +39,15 @@ def otherict():
 
 
 @pytest.fixture
+def conditionalts():
+    dct = {
+        CURRENT + 2 * ONEHOUR: True,
+        CURRENT + 3 * ONEHOUR: False,
+    }
+    return TimeSeries(dct, default=True)
+
+
+@pytest.fixture
 def otherts(otherict):
     return TimeSeries(otherict)
 

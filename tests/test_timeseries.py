@@ -284,6 +284,26 @@ class TestTimeSeriesOperators:
         assert ts[CURRENT + 3 * ONEHOUR] == 3 - 2000
         assert ts[CURRENT + 4 * ONEHOUR] == 4 - 3000
 
+    def test_simple_le(self, smallts):
+        result = smallts >= 5
+        assert all([
+            not val for val in result[CURRENT:CURRENT + 4 * ONEHOUR].values()
+        ])
+        assert all([
+            val for val in result[CURRENT + 5 * ONEHOUR:CURRENT +
+                                  9 * ONEHOUR].values()
+        ])
+
+    def test_simple_lt(self, smallts):
+        result = smallts > 5
+        assert all([
+            not val for val in result[CURRENT:CURRENT + 5 * ONEHOUR].values()
+        ])
+        assert all([
+            val for val in result[CURRENT + 6 * ONEHOUR:CURRENT +
+                                  9 * ONEHOUR].values()
+        ])
+
     def test_floor_on_float(self, smallts):
         ts = smallts.floor(2)
         assert all([value <= 2 for value in ts.values()])
@@ -318,6 +338,28 @@ class TestTimeSeriesOperators:
         assert ts[CURRENT + 2 * ONEHOUR + 30 * ONEMIN] == 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 2000
         assert ts[CURRENT + 4 * ONEHOUR] == 3000
+
+
+class TestConditionalUpdate:
+    def test_simple_conditional_update_raises_on_type_of_other(
+            self, smallts, conditionalts):
+        with pytest.raises(TypeError) as err:
+            smallts.conditional_update("fakedct", conditionalts)
+
+        assert "other should be of type TimeSeries, got" in str(err)
+
+    def test_simple_conditional_update_raises_on_type_of_condition_ts(
+            self, smallts):
+        with pytest.raises(TypeError) as err:
+            smallts.conditional_update(smallts, smallts)
+
+        assert "The values of condition should all be boolean" in str(err)
+
+    def test_simple_conditional_update(self, smallts, otherts, conditionalts):
+        smallts.conditional_update(otherts, conditionalts)
+        assert smallts[CURRENT + 2 * ONEHOUR] == 1000
+        assert smallts[CURRENT + 3 * ONEHOUR] == 3
+        assert smallts[CURRENT + 4 * ONEHOUR] == 4
 
 
 class TestTimeSeriesSample:
