@@ -119,15 +119,38 @@ class TestTimeSeriesGetitem:
 
     def test_get_on_slice_exclude_upper_bound_include_lower_bound(
             self, smallts):
-        data = {
-            CURRENT: 0,
-            CURRENT + ONEHOUR: 1,
-        }
-        expected_ts = TimeSeries(
-            data,
-            default=smallts.default,
-        )
-        assert smallts[CURRENT:CURRENT + 2 * ONEHOUR] == expected_ts
+        start = CURRENT
+        end = CURRENT + 1 * ONEHOUR
+        data = {start: 0, end: 1}
+        expected_ts = TimeSeries(data, default=smallts.default)
+        assert smallts[start:end + ONEHOUR] == expected_ts
+
+    def test_get_on_slice_add_back_previous_value_if_start_not_in_keys(
+            self, smallts):
+        start = CURRENT + HALFHOUR
+        end = CURRENT + ONEHOUR
+        data = {start: 0, end: 1}
+        expected_ts = TimeSeries(data, default=smallts.default)
+        assert smallts[start:end + ONEHOUR] == expected_ts
+
+    def test_get_on_slice_entirely_out_of_bounds_on_left_side(self, smallts):
+        assert smallts[CURRENT - 2 * ONEHOUR:CURRENT - 1 * ONEHOUR].empty
+
+    def test_get_on_slice_out_of_bounds_left_side(self, smallts):
+        start = CURRENT - 2 * ONEHOUR
+        end = CURRENT
+        data = {CURRENT: 0}
+        expected_ts = TimeSeries(data, default=smallts.default)
+        assert smallts[start:end + 1 * ONEHOUR] == expected_ts
+
+    def test_get_on_slice_entirely_out_of_bounds_on_right_side(self, smallts):
+        assert smallts[CURRENT + 10 * ONEHOUR:CURRENT + 12 * ONEHOUR].empty
+
+    def test_get_on_slicout_of_bounds_on_right_side(self, smallts):
+        sliced_ts = smallts[CURRENT + 9 * ONEHOUR:CURRENT + 12 * ONEHOUR]
+        expected_dct = {CURRENT + 9 * ONEHOUR: 9}
+        expected_ts = TimeSeries(expected_dct, default=smallts.default)
+        assert sliced_ts == expected_ts
 
 
 class TestTimeSeriesSetInterval:

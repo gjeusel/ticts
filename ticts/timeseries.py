@@ -20,6 +20,14 @@ def operation_factory(operation):
 class TimeSeries(SortedDict):
     _default_interpolate = "previous"
 
+    @property
+    def lower_bound(self):
+        return self.keys()[0]
+
+    @property
+    def upper_bound(self):
+        return self.keys()[-1]
+
     def __init__(self, *args, **kwargs):
         self.default = kwargs.pop('default', None)
         super().__init__(*args, **kwargs)
@@ -55,7 +63,7 @@ class TimeSeries(SortedDict):
             else:
                 raise KeyError("{} and timeseries is empty".format(basemsg))
 
-        if key < self.keys()[0]:
+        if key < self.lower_bound:
             if self.default:
                 return self.default
             else:
@@ -114,6 +122,12 @@ class TimeSeries(SortedDict):
             if start <= key and end > key:
                 newts[key] = value
 
+        should_add_left_closure = (start not in newts.keys()
+                                   and not newts.empty
+                                   and start >= self.lower_bound)
+        if should_add_left_closure:
+            newts[start] = self[start]
+
         return newts
 
     def set_interval(self, start, end, value):
@@ -134,7 +148,7 @@ class TimeSeries(SortedDict):
                 self[end] = self.default
             return
 
-        last_value_in_bound = sliced_ts[sliced_ts.keys()[-1]]
+        last_value_in_bound = sliced_ts[sliced_ts.upper_bound]
         for key in sliced_ts.keys():
             self.pop(key)
 
@@ -252,10 +266,10 @@ class TimeSeries(SortedDict):
             raise TypeError(msg.format(type(freq)))
 
         if not start:
-            start = self.keys()[0]
+            start = self.lower_bound
         if not end:
             # Assumption last interval is [end : end + freq[
-            end = self.keys()[-1] + freq
+            end = self.upper_bound + freq
 
         ts = TimeSeries(default=self.default)
         for i in range(0, int((end - start) / freq)):
