@@ -1,9 +1,11 @@
 import logging
 import operator
+from copy import deepcopy
 from datetime import timedelta
 
-import arrow
 from sortedcontainers import SortedDict
+
+from .pandas_ext import timestamp_converter
 
 logger = logging.getLogger(__name__)
 
@@ -25,14 +27,8 @@ class TimeSeries(SortedDict):
     def __setitem__(self, key, value):
         if isinstance(key, slice):
             return self.set_interval(key.start, key.stop, value)
-        key = arrow.get(key)
+        key = timestamp_converter(key)
         super().__setitem__(key, value)
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            raise TypeError("Can't compare TimeSeries with {}".format(
-                type(other)))
-        return super().__eq__(other) and self.default == other.default
 
     def __getitem__(self, key):
         """Get the value of the time series, even in-between measured values by interpolation.
@@ -77,7 +73,7 @@ class TimeSeries(SortedDict):
         else:
             raise ValueError("'{}' interpolation unknown.".format(interpolate))
 
-        key = arrow.get(key)
+        key = timestamp_converter(key)
         return fn(key)
 
     def _get_previous(self, time):
@@ -109,8 +105,8 @@ class TimeSeries(SortedDict):
         return value
 
     def slice(self, start, end, interpolate=_default_interpolate):  # noqa A003
-        start = arrow.get(start)
-        end = arrow.get(end)
+        start = timestamp_converter(start)
+        end = timestamp_converter(end)
 
         newts = TimeSeries(default=self.default)
 
@@ -121,25 +117,29 @@ class TimeSeries(SortedDict):
         return newts
 
     def set_interval(self, start, end, value):
-        msg_missing_default = (
-            'You may want to set a default when setting intervals'
-            ' on empty TimeSeries')
+        if not self.default:
+            msg = "At the moment, you have to set a default for set_interval"
+            raise NotImplementedError(msg)
+
         sliced_ts = self.slice(start, end)
-        if self.empty or sliced_ts.empty:
-            self[start] = value
-            if self.default and (end not in self.keys()):
+        self[start] = value
+
+        if self.empty:
+            self[end] = self.default
+            return
+
+        end_is_key = end in self.keys()
+        if sliced_ts.empty:
+            if self.default and not end_is_key:
                 self[end] = self.default
-            else:
-                logger.info(msg_missing_default)
             return
 
         last_value_in_bound = sliced_ts[sliced_ts.keys()[-1]]
         for key in sliced_ts.keys():
             self.pop(key)
 
-        self[start] = value
-
-        if end not in self.keys():  # only assign if not already defined
+        self[start] = value  # may have been popped
+        if not end_is_key:  # only assign if not already defined
             self[end] = last_value_in_bound
 
     def _operate(self, other, operator):
@@ -183,17 +183,28 @@ class TimeSeries(SortedDict):
 
         return ts
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            raise TypeError("Can't compare TimeSeries with {}".format(
+                type(other)))
+        return super().__eq__(other) and self.default == other.default
+
+    def __copy__(self):
+        newone = super().__copy__()
+        newone.default = self.default
+        return newone
+
+    def __deepcopy__(self, memo):
+        newone = deepcopy(dict(self))
+        newone = TimeSeries(newone, default=self.default)
+        return newone
+
     __add__ = operation_factory('__add__')
     __radd__ = operation_factory('__add__')
 
     __sub__ = operation_factory('__sub__')
-    __rsub__ = operation_factory('__sub__')
-
     __mul__ = operation_factory('__mul__')
-    __rmul__ = operation_factory('__mul__')
-
     __div__ = operation_factory('__div__')
-    __rdiv__ = operation_factory('__div__')
 
     def floor(self, other):
         return self._operate(other, min)

@@ -1,11 +1,11 @@
 from datetime import timedelta
 
 import pytest
-from arrow import Arrow
 
 from ticts import TimeSeries
+from ticts.pandas_ext import timestamp_converter
 
-CURRENT = Arrow(2019, 1, 1)
+CURRENT = timestamp_converter('2019-01-01')
 ONEHOUR = timedelta(hours=1)
 HALFHOUR = timedelta(minutes=30)
 ONEMIN = timedelta(minutes=1)

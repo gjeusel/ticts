@@ -44,9 +44,17 @@ class TestTimeSeriesCopy:
         copied = copy(smallts)
         assert copied == smallts
 
+    def test_copy_with_default(self, smallts_withdefault):
+        copied = copy(smallts_withdefault)
+        assert copied == smallts_withdefault
+
     def test_deepcopy(self, smallts):
         deepcopied = deepcopy(smallts)
         assert deepcopied == smallts
+
+    def test_deepcopy_with_default(self, smallts_withdefault):
+        deepcopied = deepcopy(smallts_withdefault)
+        assert deepcopied == smallts_withdefault
 
 
 def test_timeseries_compact(smallts):
@@ -123,47 +131,43 @@ class TestTimeSeriesGetitem:
 
 
 class TestTimeSeriesSetInterval:
-    def test_single_set_interval_end_on_last_key(self, smallts):
-        smallts.set_interval(CURRENT + ONEHOUR, CURRENT + 9 * ONEHOUR, 1000)
-        expected_keys = [CURRENT, CURRENT + ONEHOUR, CURRENT + 9 * ONEHOUR]
-        assert list(smallts.keys()) == expected_keys
-        assert smallts[CURRENT + ONEHOUR] == 1000
+    def test_set_interval_raises_when_no_default(self, smallts):
+        with pytest.raises(NotImplementedError):
+            smallts.set_interval(CURRENT, CURRENT + ONEHOUR, 1000)
 
-    def test_single_set_interval_start_on_first_key(self, smallts):
-        smallts.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
+    def test_single_set_interval_end_on_last_key(self, smallts_withdefault):
+        smallts_withdefault.set_interval(CURRENT + ONEHOUR,
+                                         CURRENT + 9 * ONEHOUR, 1000)
+        expected_keys = [CURRENT, CURRENT + ONEHOUR, CURRENT + 9 * ONEHOUR]
+        assert list(smallts_withdefault.keys()) == expected_keys
+        assert smallts_withdefault[CURRENT + ONEHOUR] == 1000
+
+    def test_single_set_interval_start_on_first_key(self, smallts_withdefault):
+        smallts_withdefault.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
         expected_keys = [CURRENT, CURRENT + 9 * ONEHOUR]
-        assert list(smallts.keys()) == expected_keys
-        assert smallts[CURRENT] == 1000
+        assert list(smallts_withdefault.keys()) == expected_keys
+        assert smallts_withdefault[CURRENT] == 1000
 
     @pytest.mark.parametrize('start, end', [
         (CURRENT + ONEHOUR, CURRENT + 10 * ONEHOUR),
         (CURRENT + 4 * ONEHOUR, CURRENT + 11 * ONEHOUR),
     ])
     def test_single_set_interval_end_over_last_key_sets_to_last_value(
-            self, smallts, start, end):
-        last_key = smallts.keys()[-1]
-        last_val = smallts[last_key]
+            self, smallts_withdefault, start, end):
+        last_key = smallts_withdefault.keys()[-1]
+        last_val = smallts_withdefault[last_key]
 
-        smallts.set_interval(start, end, 1000)
+        smallts_withdefault.set_interval(start, end, 1000)
         keys_before_start = []
-        for key in smallts.keys():
+        for key in smallts_withdefault.keys():
             if key < start:
                 keys_before_start.append(key)
 
         expected_keys = [*keys_before_start, start, end]
-        assert list(smallts.keys()) == expected_keys
-        assert smallts[end] == last_val
+        assert list(smallts_withdefault.keys()) == expected_keys
+        assert smallts_withdefault[end] == last_val
 
-    def test_single_set_interval_when_start_higher_than_upper_bound_when_no_default(
-            self, smallts):
-        start = CURRENT + 11 * ONEHOUR
-        end = CURRENT + 13 * ONEHOUR
-        smallts.set_interval(start, end, 1000)
-        assert smallts[CURRENT + 10 * ONEHOUR] == 9
-        assert smallts[start] == 1000
-        assert smallts[end] == 1000  # as no default
-
-    def test_single_set_interval_when_start_higher_than_upper_bound_when_has_default(
+    def test_single_set_interval_when_start_higher_than_upper_bound(
             self, smallts_withdefault):
         start = CURRENT + 11 * ONEHOUR
         end = CURRENT + 13 * ONEHOUR
@@ -172,19 +176,24 @@ class TestTimeSeriesSetInterval:
         assert smallts_withdefault[start] == 1000
         assert smallts_withdefault[end] == smallts_withdefault.default
 
-    def test_single_set_interval_start_before_first_key(self, smallts):
-        smallts.set_interval(CURRENT - ONEHOUR, CURRENT + 9 * ONEHOUR, 1000)
+    def test_single_set_interval_start_before_first_key(
+            self, smallts_withdefault):
+        smallts_withdefault.set_interval(CURRENT - ONEHOUR,
+                                         CURRENT + 9 * ONEHOUR, 1000)
         expected_keys = [CURRENT - ONEHOUR, CURRENT + 9 * ONEHOUR]
-        assert list(smallts.keys()) == expected_keys
-        assert smallts[CURRENT - 1 * ONEHOUR] == 1000
+        assert list(smallts_withdefault.keys()) == expected_keys
+        assert smallts_withdefault[CURRENT - 1 * ONEHOUR] == 1000
 
-    def test_single_set_interval_on_bounds_not_being_keys(self, smallts):
-        smallts.set_interval(CURRENT + ONEMIN, CURRENT + 9 * ONEHOUR, 1000)
+    def test_single_set_interval_on_bounds_not_being_keys(
+            self, smallts_withdefault):
+        smallts_withdefault.set_interval(CURRENT + ONEMIN,
+                                         CURRENT + 9 * ONEHOUR, 1000)
         expected_keys = [CURRENT, CURRENT + ONEMIN, CURRENT + 9 * ONEHOUR]
-        assert list(smallts.keys()) == expected_keys
-        assert smallts[CURRENT + ONEMIN] == 1000
+        assert list(smallts_withdefault.keys()) == expected_keys
+        assert smallts_withdefault[CURRENT + ONEMIN] == 1000
 
     def test_set_interval_on_empty(self, emptyts):
+        emptyts.default = 10
         emptyts.set_interval(CURRENT, CURRENT + ONEHOUR, 1)
         assert emptyts[CURRENT] == 1
         len(emptyts.keys()) == 1
@@ -196,11 +205,11 @@ class TestTimeSeriesSetInterval:
                                    ONEHOUR] == emptyts_withdefault.default
         len(emptyts_withdefault.keys()) == 2
 
-    def test_same_consecutive_set_interval(self, smallts):
-        smallts.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
-        first_time = deepcopy(smallts)
-        smallts.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
-        assert first_time == smallts
+    def test_same_consecutive_set_interval(self, smallts_withdefault):
+        smallts_withdefault.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
+        first_time = deepcopy(smallts_withdefault)
+        smallts_withdefault.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
+        assert first_time == smallts_withdefault
 
     def test_consecutive_set_interval_on_empty_with_default(self, emptyts):
         emptyts.default = 10
@@ -230,18 +239,6 @@ class TestTimeSeriesSetInterval:
 
         for key in expected_dct:
             assert emptyts[key] == expected_dct[key]
-
-    def test_set_interval_when_no_keys_to_delete_with_no_default(
-            self, emptyts):
-        emptyts.set_interval(CURRENT, CURRENT + 1 * ONEHOUR, 0)
-        emptyts.set_interval(CURRENT + 2 * ONEHOUR, CURRENT + 3 * ONEHOUR, 2)
-
-        expected_keys = [CURRENT, CURRENT + 2 * ONEHOUR]
-        assert list(emptyts.keys()) == expected_keys
-        assert emptyts[CURRENT] == 0
-        assert emptyts[CURRENT + 1 * ONEHOUR] == 0
-        assert emptyts[CURRENT + 2 * ONEHOUR] == 2.
-        assert emptyts[CURRENT + 3 * ONEHOUR] == 2.
 
 
 class TestTimeSeriesOperators:
