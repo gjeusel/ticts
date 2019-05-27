@@ -263,6 +263,13 @@ class TestTimeSeriesOperators:
         assert ts[CURRENT + 3 * ONEHOUR] == 3 + 2000
         assert ts[CURRENT + 4 * ONEHOUR] == 4 + 3000
 
+    def test_add_on_list_of_timeseries(self, smallts):
+        lst_timeseries = [smallts, smallts, smallts]
+        result = sum(lst_timeseries)
+
+        for key in result:
+            assert result[key] == 3 * smallts[key]
+
     def test_simple_sub(self, smallts):
         ts = smallts - smallts
         assert all([val == 0 for val in ts.values()])
