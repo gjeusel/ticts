@@ -121,38 +121,26 @@ class TimeSeries(SortedDict):
         return newts
 
     def set_interval(self, start, end, value):
-        if self.empty:
+        msg_missing_default = (
+            'You may want to set a default when setting intervals'
+            ' on empty TimeSeries')
+        sliced_ts = self.slice(start, end)
+        if self.empty or sliced_ts.empty:
             self[start] = value
-            if self.default:
+            if self.default and (end not in self.keys()):
                 self[end] = self.default
             else:
-                msg = ('You may want to set a default when setting intervals'
-                       ' on empty TimeSeries')
-                logger.info(msg)
+                logger.info(msg_missing_default)
             return
 
-        entered_bound = False
-        to_delete_keys = []  # avoid changing self while looping
-        prev_value = None  # keep track of previous val
-        for key, val in self.items():
-            in_bound = (key >= start and key < end)
-            if not in_bound:
-                if not entered_bound:
-                    continue
-                else:
-                    if key == end:
-                        prev_value = val
-                    break
-
-            entered_bound = True
-            prev_value = val
-            to_delete_keys.append(key)
-
-        for key in to_delete_keys:
+        last_value_in_bound = sliced_ts[sliced_ts.keys()[-1]]
+        for key in sliced_ts.keys():
             self.pop(key)
 
         self[start] = value
-        self[end] = prev_value  # don't forget to set back last val
+
+        if end not in self.keys():  # only assign if not already defined
+            self[end] = last_value_in_bound
 
     def _operate(self, other, operator):
         if isinstance(other, self.__class__):
