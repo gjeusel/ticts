@@ -184,9 +184,16 @@ class TimeSeries(SortedDict):
         return ts
 
     __add__ = operation_factory('__add__')
+    __radd__ = operation_factory('__add__')
+
     __sub__ = operation_factory('__sub__')
+    __rsub__ = operation_factory('__sub__')
+
     __mul__ = operation_factory('__mul__')
+    __rmul__ = operation_factory('__mul__')
+
     __div__ = operation_factory('__div__')
+    __rdiv__ = operation_factory('__div__')
 
     def floor(self, other):
         return self._operate(other, min)
