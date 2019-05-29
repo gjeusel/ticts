@@ -5,6 +5,7 @@ from unittest import mock
 import pytest
 
 from ticts import TimeSeries
+from ticts.utils import MAXTS, MINTS
 
 from .conftest import CURRENT, HALFHOUR, ONEHOUR, ONEMIN
 
@@ -55,6 +56,20 @@ class TestTimeSeriesCopy:
     def test_deepcopy_with_default(self, smallts_withdefault):
         deepcopied = deepcopy(smallts_withdefault)
         assert deepcopied == smallts_withdefault
+
+
+class TestTimeSeriesBoundProperties:
+    def test_lower_bound(self, smallts):
+        assert smallts.lower_bound == smallts.keys()[0]
+
+    def test_upper_bound(self, smallts):
+        assert smallts.upper_bound == smallts.keys()[-1]
+
+    def test_lower_bound_on_empty(self, emptyts):
+        assert emptyts.lower_bound == MINTS
+
+    def test_upper_bound_on_empty(self, emptyts):
+        assert emptyts.upper_bound == MAXTS
 
 
 def test_timeseries_compact(smallts):
@@ -279,7 +294,7 @@ class TestTimeSeriesOperators:
         ts = smallts_withdefault + otherts_withdefault
         assert ts[CURRENT + 1 * ONEHOUR] == 1 + otherts_withdefault.default
         assert ts[CURRENT + 2 * ONEHOUR] == 2 + 1000
-        assert ts[CURRENT + 2 * ONEHOUR + 30 * ONEMIN] == 2 + 2000
+        assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 + 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 3 + 2000
         assert ts[CURRENT + 4 * ONEHOUR] == 4 + 3000
 
@@ -303,7 +318,7 @@ class TestTimeSeriesOperators:
         ts = smallts_withdefault - otherts_withdefault
         assert ts[CURRENT + 1 * ONEHOUR] == 1 - 900
         assert ts[CURRENT + 2 * ONEHOUR] == 2 - 1000
-        assert ts[CURRENT + 2 * ONEHOUR + 30 * ONEMIN] == 2 - 2000
+        assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 - 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 3 - 2000
         assert ts[CURRENT + 4 * ONEHOUR] == 4 - 3000
 
@@ -335,7 +350,7 @@ class TestTimeSeriesOperators:
         ts = smallts_withdefault.floor(otherts_withdefault)
         assert ts[CURRENT + 1 * ONEHOUR] == 1
         assert ts[CURRENT + 2 * ONEHOUR] == 2
-        assert ts[CURRENT + 2 * ONEHOUR + 30 * ONEMIN] == 2
+        assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2
         assert ts[CURRENT + 3 * ONEHOUR] == 3
         assert ts[CURRENT + 4 * ONEHOUR] == 4
 
@@ -347,7 +362,7 @@ class TestTimeSeriesOperators:
         ts = smallts_withdefault.ceil(otherts_withdefault)
         assert ts[CURRENT + ONEHOUR] == 900
         assert ts[CURRENT + 2 * ONEHOUR] == 1000
-        assert ts[CURRENT + 2 * ONEHOUR + 30 * ONEMIN] == 2000
+        assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 2000
         assert ts[CURRENT + 4 * ONEHOUR] == 3000
 
@@ -358,31 +373,70 @@ class TestTimeSeriesOperators:
 
         assert ts[CURRENT + ONEHOUR] == 1
         assert ts[CURRENT + 2 * ONEHOUR] == 1000
-        assert ts[CURRENT + 2 * ONEHOUR + 30 * ONEMIN] == 2000
+        assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 2000
         assert ts[CURRENT + 4 * ONEHOUR] == 3000
 
 
-class TestConditionalUpdate:
-    def test_simple_conditional_update_raises_on_type_of_other(
-            self, smallts, conditionalts):
+class TestMaskUpdate:
+    """
+                0    1    2    3    4    5    6    7    8    9
+                |    |    |    |    |    |    |    |    |    |    |
+                ----------------------------------------------------------
+    smallts     *    *    *    *    *    *    *    *    *    *
+    otherts               *  *      *
+    maskts                   T      F
+    """
+
+    def test_simple_mask_update_raises_on_type_of_other(self, smallts, maskts):
         with pytest.raises(TypeError) as err:
-            smallts.conditional_update("fakedct", conditionalts)
+            smallts.mask_update("fakedct", maskts)
 
         assert "other should be of type TimeSeries, got" in str(err)
 
-    def test_simple_conditional_update_raises_on_type_of_condition_ts(
-            self, smallts):
+    def test_simple_mask_update_raises_if_not_boolean(self, smallts):
         with pytest.raises(TypeError) as err:
-            smallts.conditional_update(smallts, smallts)
+            smallts.mask_update(smallts, smallts)
 
-        assert "The values of condition should all be boolean" in str(err)
+        assert "The values of the mask should all be boolean" in str(err)
 
-    def test_simple_conditional_update(self, smallts, otherts, conditionalts):
-        smallts.conditional_update(otherts, conditionalts)
-        assert smallts[CURRENT + 2 * ONEHOUR] == 1000
-        assert smallts[CURRENT + 3 * ONEHOUR] == 3
+    def test_mask_update_with_empty_no_default_other_raises(
+            self, smallts, emptyts, maskts):
+        with pytest.raises(ValueError) as err:
+            smallts.mask_update(emptyts, maskts)
+        assert 'other is empty and has no default set' in str(err)
+
+    def test_mask_update_with_empty_and_no_default_mask_raises(
+            self, smallts, emptyts):
+        with pytest.raises(ValueError) as err:
+            smallts.mask_update(smallts, emptyts)
+        assert 'mask is empty and has no default set' in str(err)
+
+    def test_simple_mask_update(self, smallts, otherts, maskts):
+        smallts_keys = smallts.keys()
+        otherts_keys = otherts.keys()
+        smallts.mask_update(otherts, maskts)
+
+        assert set(smallts.keys()) == set(smallts_keys).union(
+            set(otherts_keys))
+
+        assert smallts[CURRENT + 2 * ONEHOUR] == 2
+        assert smallts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2000
+        assert smallts[CURRENT + 3 * ONEHOUR] == 2000
         assert smallts[CURRENT + 4 * ONEHOUR] == 4
+
+    def test_mask_update_with_other_being_empty_with_default(
+            self, smallts, emptyts, maskts):
+        emptyts.default = -10.
+        smallts.mask_update(emptyts, maskts)
+
+        assert smallts[CURRENT + 2 * ONEHOUR] == 2
+        assert smallts[CURRENT + 3 * ONEHOUR] == -10.
+        assert smallts[CURRENT + 4 * ONEHOUR] == 4
+
+    def test_mask_update_on_emptyts(self, smallts, emptyts, maskts):
+        emptyts.mask_update(smallts, maskts)
+        assert emptyts == TimeSeries({CURRENT + 3 * ONEHOUR: 3})
 
 
 class TestTimeSeriesSample:

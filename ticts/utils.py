@@ -19,5 +19,9 @@ def timestamp_converter(ts):
         return arrow.get(ts)
 
 
-def to_dataframe(self):
-    return pd.DataFrame(data={'value': self.values()}, index=self.keys())
+if PANDAS_IS_INSTALLED:
+    MINTS = pd.Timestamp.min.tz_localize('UTC')
+    MAXTS = pd.Timestamp.max.tz_localize('UTC')
+else:
+    MINTS = arrow.Arrow.min
+    MAXTS = arrow.Arrow.max
