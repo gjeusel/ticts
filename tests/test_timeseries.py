@@ -82,6 +82,12 @@ class TestTimeSeriesGetitem:
 
     # tests on corner cases
 
+    def test_get_item_out_of_left_bound_with_default_zero(self):
+        mytuple = ((CURRENT, 0), (CURRENT + ONEHOUR, 1))
+        ts = TimeSeries(mytuple, default=0)
+        assert ts[CURRENT + ONEHOUR] == 1
+        assert ts[CURRENT - ONEHOUR] == 0
+
     def test_getitem_out_of_left_bound_with_no_default_raises(self, smallts):
         with pytest.raises(KeyError) as err:
             smallts[CURRENT - ONEMIN]
