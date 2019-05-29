@@ -70,14 +70,16 @@ class TimeSeries(SortedDict):
 
         interpolate = self._default_interpolate
 
-        if hasattr(key, '__len__'):
+        if isinstance(key, tuple):
             if len(key) == 2:
                 key, interpolate = key
             elif len(key) > 2:
                 raise KeyError
 
         if isinstance(key, slice):
-            return self.slice(key.start, key.stop, interpolate)
+            return self.slice(key.start, key.stop)
+
+        key = timestamp_converter(key)
 
         basemsg = "Getting {} but default attribute is not set".format(key)
         if self.empty:
@@ -136,7 +138,7 @@ class TimeSeries(SortedDict):
         value = previous_value + coeff * (next_value - previous_value)
         return value
 
-    def slice(self, start, end, interpolate=_default_interpolate):  # noqa A003
+    def slice(self, start, end):  # noqa A003
         start = timestamp_converter(start)
         end = timestamp_converter(end)
 

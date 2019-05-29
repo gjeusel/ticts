@@ -128,8 +128,10 @@ class TestTimeSeriesGetitem:
     def test_getitem_out_of_left_bound_with_no_default_raises(self, smallts):
         with pytest.raises(KeyError) as err:
             smallts[CURRENT - ONEMIN]
-
         assert 'default attribute is not set' in str(err)
+
+    def test_getitem_using_str(self, smallts):
+        smallts['2019-01-01'] == 0
 
     @pytest.mark.parametrize('interpolate', available_interpolate)
     def test_getitem_out_of_left_bound_with_default_return_default(
