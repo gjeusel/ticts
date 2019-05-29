@@ -89,7 +89,7 @@ class TimeSeries(SortedDict):
                 raise KeyError("{} and timeseries is empty".format(basemsg))
 
         if key < self.lower_bound:
-            if self.default:
+            if self.default is not None:
                 return self.default
             else:
                 msg = "{}, can't deduce value before the oldest measurement"
