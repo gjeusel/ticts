@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from sortedcontainers import SortedDict
 
-from .pandas_ext import timestamp_converter
+from .utils import MAXTS, MINTS, timestamp_converter
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +22,14 @@ class TimeSeries(SortedDict):
 
     @property
     def lower_bound(self):
+        if self.empty:
+            return MINTS
         return self.keys()[0]
 
     @property
     def upper_bound(self):
+        if self.empty:
+            return MAXTS
         return self.keys()[-1]
 
     def __init__(self, *args, **kwargs):
@@ -92,13 +96,14 @@ class TimeSeries(SortedDict):
         return super().__getitem__(time_idx)
 
     def _get_linear_interpolate(self, time):
+        # TODO: put it into a 'get_previous_index' method
         idx = self.bisect_left(time)
         previous_time_idx = self.keys()[idx - 1]
 
+        # TODO: check on left bound case
+
         # out of right bound case:
         if idx == len(self):
-            msg = "Can't interpolate out of right bound, returning value of right bound."
-            logger.info(msg)
             return super().__getitem__(previous_time_idx)
 
         next_time_idx = self.keys()[idx]
@@ -119,14 +124,14 @@ class TimeSeries(SortedDict):
         newts = TimeSeries(default=self.default)
 
         for key, value in self.items():
-            if start <= key and end > key:
+            if start <= key < end:
                 newts[key] = value
 
         should_add_left_closure = (start not in newts.keys()
                                    and not newts.empty
                                    and start >= self.lower_bound)
         if should_add_left_closure:
-            newts[start] = self[start]
+            newts[start] = self[start]  # is applying get_previous on self
 
         return newts
 
@@ -230,17 +235,33 @@ class TimeSeries(SortedDict):
     def ceil(self, other):
         return self._operate(other, max)
 
-    def conditional_update(self, other, condition):
+    def mask_update(self, other, mask):
         if not isinstance(other, TimeSeries):
             msg = 'other should be of type TimeSeries, got {}'
             raise TypeError(msg.format(type(other)))
-        if not all([isinstance(value, bool) for value in condition.values()]):
-            msg = 'The values of condition should all be boolean.'
+        if not all([isinstance(value, bool) for value in mask.values()]):
+            msg = 'The values of the mask should all be boolean.'
             raise TypeError(msg)
 
-        for key, value in other.items():
-            if condition[key]:
-                self[key] = value
+        if mask.empty and not mask.default:
+            msg = "mask is empty and has no default set"
+            raise ValueError(msg)
+
+        if other.empty and not other.default:
+            msg = "other is empty and has no default set"
+            raise ValueError(msg)
+
+        all_keys = set(self.keys()).union(set(other.keys()))
+
+        if not other.default:
+            all_keys = [key for key in all_keys if key >= other.lower_bound]
+
+        if not mask.default:
+            all_keys = [key for key in all_keys if key >= mask.lower_bound]
+
+        for key in all_keys:
+            if mask[key]:
+                self[key] = other[key]
 
     @property
     def empty(self):

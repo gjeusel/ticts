@@ -3,7 +3,7 @@ from datetime import timedelta
 import pytest
 
 from ticts import TimeSeries
-from ticts.pandas_ext import timestamp_converter
+from ticts.utils import timestamp_converter
 
 CURRENT = timestamp_converter('2019-01-01')
 ONEHOUR = timedelta(hours=1)
@@ -33,18 +33,18 @@ def smallts_withdefault(smalldict):
 def otherict():
     return {
         CURRENT + 2 * ONEHOUR: 1000,
-        CURRENT + 2 * ONEHOUR + 30 * ONEMIN: 2000,
+        CURRENT + 2 * ONEHOUR + HALFHOUR: 2000,
         CURRENT + 4 * ONEHOUR: 3000,
     }
 
 
 @pytest.fixture
-def conditionalts():
+def maskts():
     dct = {
-        CURRENT + 2 * ONEHOUR: True,
-        CURRENT + 3 * ONEHOUR: False,
+        CURRENT + 2 * ONEHOUR + HALFHOUR: True,
+        CURRENT + 4 * ONEHOUR: False,
     }
-    return TimeSeries(dct, default=True)
+    return TimeSeries(dct)
 
 
 @pytest.fixture
