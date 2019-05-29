@@ -45,6 +45,7 @@ class TimeSeries(SortedDict):
 
     def __init__(self, *args, **kwargs):
         self.default = kwargs.pop('default', None)
+        self.permissive = kwargs.pop('permissive', True)
 
         # SortedDict use the first arg given and check if is a callable
         # in case you want to give your custom sorting function.
@@ -86,14 +87,21 @@ class TimeSeries(SortedDict):
             if self.default:
                 return self.default
             else:
-                raise KeyError("{} and timeseries is empty".format(basemsg))
+                if self.permissive:
+                    return
+                else:
+                    raise KeyError(
+                        "{} and timeseries is empty".format(basemsg))
 
         if key < self.lower_bound:
             if self.default is not None:
                 return self.default
             else:
-                msg = "{}, can't deduce value before the oldest measurement"
-                raise KeyError(msg.format(basemsg))
+                if self.permissive:
+                    return
+                else:
+                    msg = "{}, can't deduce value before the oldest measurement"
+                    raise KeyError(msg.format(basemsg))
 
         # If the key is already defined:
         if key in self.keys():
@@ -307,13 +315,26 @@ class TimeSeries(SortedDict):
             msg = 'Freq should be of instance timedelta, got {}'
             raise TypeError(msg.format(type(freq)))
 
+        ts = TimeSeries(default=self.default)
+
+        if self.empty:
+            return ts
+
+        if start:
+            start = timestamp_converter(start)
+            if not self.default:
+                start = max(start, self.lower_bound)
+
+        if end:
+            end = timestamp_converter(end)
+
         if not start:
             start = self.lower_bound
+
         if not end:
             # Assumption last interval is [end : end + freq[
             end = self.upper_bound + freq
 
-        ts = TimeSeries(default=self.default)
         for i in range(0, int((end - start) / freq)):
             dt = start + i * freq
             ts[dt] = self[dt, interpolate]
