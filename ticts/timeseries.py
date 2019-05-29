@@ -2,6 +2,7 @@ import logging
 import operator
 from copy import deepcopy
 from datetime import timedelta
+from itertools import chain
 
 from sortedcontainers import SortedDict
 
@@ -15,6 +16,16 @@ def operation_factory(operation):
         return self._operate(other, getattr(operator, operation))
 
     return fn_operation
+
+
+def _process_args(mapping=(), **kwargs):
+    if isinstance(mapping, (list, tuple, set)) and len(mapping) == 1:
+        mapping = mapping[0]
+    if hasattr(mapping, 'items'):
+        mapping = mapping.items()
+
+    return ((timestamp_converter(k), v)
+            for k, v in chain(mapping, kwargs.items()))
 
 
 class TimeSeries(SortedDict):
@@ -34,7 +45,15 @@ class TimeSeries(SortedDict):
 
     def __init__(self, *args, **kwargs):
         self.default = kwargs.pop('default', None)
-        super().__init__(*args, **kwargs)
+
+        # SortedDict use the first arg given and check if is a callable
+        # in case you want to give your custom sorting function.
+        if args and (args[0] is None or callable(args[0])):
+            args = args[1:]
+
+        # SortedDict.__init__ does not use the __setitem__
+        # Hence we got to parse datetime keys ourselves.
+        super().__init__(_process_args(args, **kwargs))
 
     def __setitem__(self, key, value):
         if isinstance(key, slice):

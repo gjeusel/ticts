@@ -5,22 +5,65 @@ from unittest import mock
 import pytest
 
 from ticts import TimeSeries
-from ticts.utils import MAXTS, MINTS
+from ticts.utils import MAXTS, MINTS, timestamp_converter
 
 from .conftest import CURRENT, HALFHOUR, ONEHOUR, ONEMIN
 
 
 class TestTimeSeriesInit:
     def test_with_dict(self, smalldict):
-        ts = TimeSeries(smalldict)
+        ts = TimeSeries(smalldict, default=10)
         assert ts[CURRENT + ONEHOUR] == 1
+        assert ts.default == 10
+
+    def test_with_dict_keys_being_strings(self):
+        dct = {
+            '2019-01-01': 1,
+            '2019-02-01': 2,
+            timestamp_converter('2019-03-01'): 3,
+        }
+        ts = TimeSeries(dct, default=10)
+        expected = {
+            timestamp_converter(key): value
+            for key, value in dct.items()
+        }
+        assert ts.items() == expected.items()
+        assert ts.default == 10
+
+    def test_with_dict_keys_being_strings_passed_as_kwargs(self):
+        dct = {
+            '2019-01-01': 1,
+            '2019-02-01': 2,
+            '2019-03-01': 3,
+        }
+        ts = TimeSeries(**dct, default=10)
+        expected = {
+            timestamp_converter(key): value
+            for key, value in dct.items()
+        }
+        assert ts.items() == expected.items()
+        assert ts.default == 10
 
     def test_with_data_as_tuple(self):
-        mytuple = ((CURRENT, 0), (CURRENT + ONEHOUR, 1))
-        ts = TimeSeries(mytuple)
+        mytuple = (
+            (CURRENT, 0),
+            (CURRENT + ONEHOUR, 1),
+        )
+        ts = TimeSeries(mytuple, default=10)
         assert ts[CURRENT] == 0
         assert ts[CURRENT + ONEHOUR] == 1
         assert len(ts) == 2
+        assert ts.default == 10
+
+    def test_with_data_as_tuple_with_strings(self):
+        mytuple = (
+            ('2019-01-01', 0),
+            (timestamp_converter('2019-01-01'), 1),
+        )
+        ts = TimeSeries(*mytuple, default=10)
+        expected = {timestamp_converter(key): value for key, value in mytuple}
+        assert ts.items() == expected.items()
+        assert ts.default == 10
 
 
 class TestTimeSeriesSetItem:
