@@ -131,7 +131,13 @@ class TestTimeSeriesGetitem:
         assert ts[CURRENT + ONEHOUR] == 1
         assert ts[CURRENT - ONEHOUR] == 0
 
-    def test_getitem_out_of_left_bound_with_no_default_raises(self, smallts):
+    def test_getitem_out_of_left_bound_with_no_default_and_permissive_return_None(
+            self, smallts):
+        assert smallts[CURRENT - ONEMIN] is None
+
+    def test_getitem_out_of_left_bound_with_no_default_and_not_permissive_raises(
+            self, smallts):
+        smallts.permissive = False
         with pytest.raises(KeyError) as err:
             smallts[CURRENT - ONEMIN]
         assert 'default attribute is not set' in str(err)
@@ -146,13 +152,19 @@ class TestTimeSeriesGetitem:
         assert value == smallts_withdefault.default
 
     @pytest.mark.parametrize('interpolate', available_interpolate)
-    def test_getitem_on_empty_when_no_default_raises(self, emptyts,
-                                                     interpolate):
+    def test_getitem_on_empty_when_no_default_not_permissive_raises(
+            self, emptyts, interpolate):
+        emptyts.permissive = False
         with pytest.raises(KeyError) as err:
             emptyts[CURRENT - ONEMIN, interpolate]
 
         assert str(
             "default attribute is not set and timeseries is empty") in str(err)
+
+    @pytest.mark.parametrize('interpolate', available_interpolate)
+    def test_getitem_on_empty_when_no_default_return_None(
+            self, emptyts, interpolate):
+        emptyts[CURRENT - ONEMIN, interpolate] is None
 
     # tests on '_get_previous'
 
@@ -503,16 +515,32 @@ class TestTimeSeriesSample:
         expected_ts = TimeSeries(expected_dict, default=smallts.default)
         assert ts == expected_ts
 
-    def test_sample_raises_when_no_default_and_start_lower_than_all_keys(
+    def test_simple_sample_with_start_being_string(self, smallts):
+        start = '2019-01-01T09:00:00'
+        ts = smallts.sample(HALFHOUR, start=start)
+        assert ts == TimeSeries({start: 9})
+
+    def test_sample_out_of_left_bound_with_no_default_permissive_shorten_interval(
             self, smallts):
-        with pytest.raises(KeyError) as err:
-            smallts.sample(freq=HALFHOUR, start=CURRENT - ONEHOUR)
+        ts = smallts.sample(
+            freq=HALFHOUR, start=CURRENT - ONEHOUR, end=CURRENT + ONEHOUR)
+        assert ts == TimeSeries({CURRENT: 0, CURRENT + HALFHOUR: 0})
 
-        assert "default attribute is not set, can't deduce value" in str(err)
+    def test_sample_on_empty_return_empty_df(self, emptyts):
+        assert emptyts.sample(freq=ONEHOUR).empty
 
-    def test_sample_with_start_lower_than_all_keys(self, smallts_withdefault):
+    def test_sample_with_start_out_of_left_bounds_with_default(
+            self, smallts_withdefault):
         ts = smallts_withdefault.sample(freq=HALFHOUR, start=CURRENT - ONEHOUR)
         default = smallts_withdefault.default
+        assert ts[CURRENT - ONEHOUR] == default
+        assert ts[CURRENT - HALFHOUR] == default
+        assert ts[CURRENT] == 0
+        assert CURRENT + HALFHOUR in ts.keys()
+
+    def test_sample_with_start_out_of_left_bounds(self, smallts):
+        ts = smallts.sample(freq=HALFHOUR, start=CURRENT - ONEHOUR)
+        default = smallts.default
         assert ts[CURRENT - ONEHOUR] == default
         assert ts[CURRENT - HALFHOUR] == default
         assert ts[CURRENT] == 0
