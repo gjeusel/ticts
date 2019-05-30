@@ -340,3 +340,21 @@ class TimeSeries(SortedDict):
             ts[dt] = self[dt, interpolate]
 
         return ts
+
+    def __repr__(self):
+        header = "<TimeSeries>"
+        if self.default:
+            header = "{} (default={})".format(header, self.default)
+
+        def generate_content(keys):
+            return '\n'.join(
+                ["{}: {},".format(key.isoformat(), self[key]) for key in keys])
+
+        if len(self) < 10:
+            content = generate_content(self.keys())
+        else:
+            content_head = generate_content(self.keys()[:5])
+            content_tail = generate_content(self.keys()[-5:])
+            content = "{}\n[...]\n{}".format(content_head, content_tail)
+
+        return "{}\n{}".format(header, content)
