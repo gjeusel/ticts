@@ -101,6 +101,21 @@ class TestTimeSeriesCopy:
         assert deepcopied == smallts_withdefault
 
 
+class TestTimeSeriesRepr:
+    def test_repr_on_otherts(self, otherts):
+        assert repr(otherts).count('\n') == 3
+
+    def test_repr_on_large(self):
+        dct = dict()
+        for i in range(100):
+            dct[CURRENT + i * ONEHOUR] = i
+        ts = TimeSeries(dct)
+        assert repr(ts).count('\n') == 11
+
+    def test_repr_with_default(self, smallts_withdefault):
+        assert 'default=' in repr(smallts_withdefault)
+
+
 class TestTimeSeriesBoundProperties:
     def test_lower_bound(self, smallts):
         assert smallts.lower_bound == smallts.keys()[0]
