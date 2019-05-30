@@ -25,6 +25,8 @@ Greatly inspired by `traces <https://github.com/datascopeanalytics/traces>`_.
 
 Get Started `Notebook <https://mybinder.org/v2/gh/gjeusel/ticts/master?filepath=docs%2FTutorial.ipynb>`_.
 
+.. |example| image:: _static/example.png
+|example|
 
 Usage
 -----
