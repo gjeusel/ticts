@@ -49,17 +49,20 @@ class TimeSeries(SortedDict):
 
     @property
     def lower_bound(self):
+        """Return the lower bound time index."""
         if self.empty:
             return MINTS
         return self.keys()[0]
 
     @property
     def upper_bound(self):
+        """Return the upper bound time index."""
         if self.empty:
             return MAXTS
         return self.keys()[-1]
 
     def __init__(self, *args, **kwargs):
+        """"""
         self.default = kwargs.pop('default', None)
         self.permissive = kwargs.pop('permissive', True)
 

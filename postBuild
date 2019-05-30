@@ -1,0 +1,12 @@
+# Used by Binder, executed at the end to render jupyter notebook
+
+# enable nbserverproxy
+jupyter serverextension enable --sys-prefix nbserverproxy
+# install the bokeh server extension so that
+# bokeh launches at startup
+mv bokehserverextension.py ${NB_PYTHON_PREFIX}/lib/python*/site-packages/
+# enable bokeh extension
+jupyter serverextension enable --sys-prefix bokehserverextension
+
+# Install missing deps
+pip install bokeh pandas
