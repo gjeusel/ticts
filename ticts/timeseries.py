@@ -28,6 +28,22 @@ def _process_args(mapping=(), **kwargs):
             for k, v in chain(mapping, kwargs.items()))
 
 
+def _get_keys_for_operation(ts1, ts2, *args):
+    all_ts = [ts1, ts2, *args]
+    for ts in all_ts:
+        if not isinstance(ts, TimeSeries):
+            raise TypeError("{} is not of type TimeSeries".format(ts))
+
+    all_keys = set.union(*[set(ts.keys()) for ts in all_ts])
+
+    lower_bound = MINTS
+    for ts in all_ts:
+        if ts.default is None:
+            lower_bound = max(lower_bound, ts.lower_bound)
+
+    return [key for key in all_keys if key >= lower_bound]
+
+
 class TimeSeries(SortedDict):
     _default_interpolate = "previous"
 
@@ -203,8 +219,10 @@ class TimeSeries(SortedDict):
         all_keys = set(self.keys()).union(set(other.keys()))
 
         default = None
-        if self.default and other.default:
+        if self.default is not None and other.default is not None:
             default = operator(self.default, other.default)
+
+        all_keys = _get_keys_for_operation(self, other)
 
         ts = TimeSeries(default=default)
         for key in all_keys:
@@ -265,13 +283,16 @@ class TimeSeries(SortedDict):
         return self._operate(other, max)
 
     def mask_update(self, other, mask):
+        # Type checks
         if not isinstance(other, TimeSeries):
             msg = 'other should be of type TimeSeries, got {}'
             raise TypeError(msg.format(type(other)))
+
         if not all([isinstance(value, bool) for value in mask.values()]):
             msg = 'The values of the mask should all be boolean.'
             raise TypeError(msg)
 
+        # Empty ts checks
         if mask.empty and not mask.default:
             msg = "mask is empty and has no default set"
             raise ValueError(msg)
@@ -280,10 +301,7 @@ class TimeSeries(SortedDict):
             msg = "other is empty and has no default set"
             raise ValueError(msg)
 
-        all_keys = set(self.keys()).union(set(other.keys()))
-
-        if not other.default:
-            all_keys = [key for key in all_keys if key >= other.lower_bound]
+        all_keys = _get_keys_for_operation(self, other)
 
         if not mask.default:
             all_keys = [key for key in all_keys if key >= mask.lower_bound]
