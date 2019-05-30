@@ -46,10 +46,10 @@ Usage
 
    from datetime import timedelta
    onemin = timedelta(minutes=1)
-   ts.sample(freq=onemin)
+   ts_evenly_spaced = ts.sample(freq=onemin)
 
    # if pandas installed:
-   ts.to_dataframe()
+   df = ts.to_dataframe()
 
 
 Installation
