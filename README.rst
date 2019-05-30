@@ -20,6 +20,7 @@ ticts
 
 
 A Python library for unevenly-spaced time series analysis.
+Greatly inspired by `traces <https://github.com/datascopeanalytics/traces>`_.
 
 
 Get Started `Notebook <https://mybinder.org/v2/gh/gjeusel/ticts/master?filepath=docs%2FTutorial.ipynb>`_.
