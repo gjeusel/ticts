@@ -367,10 +367,30 @@ class TestTimeSeriesOperators:
         ts = smallts + 1000
         assert list(ts.values()) == list(range(1000, 1010))
 
-    def test_add_with_keys_differences(self, smallts_withdefault,
-                                       otherts_withdefault):
+    def test_add_with_keys_differences_with_default(self, smallts_withdefault,
+                                                    otherts_withdefault):
         ts = smallts_withdefault + otherts_withdefault
+        assert ts.default == smallts_withdefault.default + otherts_withdefault.default
         assert ts[CURRENT + 1 * ONEHOUR] == 1 + otherts_withdefault.default
+        assert ts[CURRENT + 2 * ONEHOUR] == 2 + 1000
+        assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 + 2000
+        assert ts[CURRENT + 3 * ONEHOUR] == 3 + 2000
+        assert ts[CURRENT + 4 * ONEHOUR] == 4 + 3000
+
+    def test_add_with_keys_differences_without_default(self, smallts, otherts):
+        ts = smallts + otherts
+        assert ts.default is None
+        assert CURRENT + 1 * ONEHOUR not in ts.keys()
+        assert ts[CURRENT + 2 * ONEHOUR] == 2 + 1000
+        assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 + 2000
+        assert ts[CURRENT + 3 * ONEHOUR] == 3 + 2000
+        assert ts[CURRENT + 4 * ONEHOUR] == 4 + 3000
+
+    def test_add_with_keys_differences_with_mixed_default_nodefault(
+            self, smallts_withdefault, otherts):
+        ts = smallts_withdefault + otherts
+        assert ts.default is None
+        assert CURRENT + 1 * ONEHOUR not in ts.keys()
         assert ts[CURRENT + 2 * ONEHOUR] == 2 + 1000
         assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 + 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 3 + 2000
@@ -391,10 +411,18 @@ class TestTimeSeriesOperators:
         ts = smallts - 1
         assert list(ts.values()) == list(range(-1, 9))
 
-    def test_sub_with_keys_differences(self, smallts_withdefault,
-                                       otherts_withdefault):
+    def test_sub_with_keys_differences_with_default(self, smallts_withdefault,
+                                                    otherts_withdefault):
         ts = smallts_withdefault - otherts_withdefault
         assert ts[CURRENT + 1 * ONEHOUR] == 1 - 900
+        assert ts[CURRENT + 2 * ONEHOUR] == 2 - 1000
+        assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 - 2000
+        assert ts[CURRENT + 3 * ONEHOUR] == 3 - 2000
+        assert ts[CURRENT + 4 * ONEHOUR] == 4 - 3000
+
+    def test_sub_with_keys_differences_without_default(self, smallts, otherts):
+        ts = smallts - otherts
+        assert CURRENT + 1 * ONEHOUR not in ts.keys()
         assert ts[CURRENT + 2 * ONEHOUR] == 2 - 1000
         assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 - 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 3 - 2000
