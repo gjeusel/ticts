@@ -47,6 +47,14 @@ def _get_keys_for_operation(ts1, ts2, *args):
 
 
 class TimeSeries(SortedDict):
+    """ TimeSeries object.
+
+    Args:
+        default: The default value of timeseries.
+        permissive (bool): Whether to allow accessing non-existing values or not.
+            If is True, getting non existing item returns None.
+            If is False, getting non existing item raises.
+    """
     _default_interpolate = "previous"
 
     @property
@@ -66,6 +74,11 @@ class TimeSeries(SortedDict):
     @property
     def _has_default(self):
         return self.default != NO_DEFAULT
+
+    @property
+    def empty(self):
+        """Return whether the TimeSeries is empty or not."""
+        return len(self) == 0
 
     def __init__(self, *args, **kwargs):
         """"""
@@ -172,6 +185,15 @@ class TimeSeries(SortedDict):
         return value
 
     def slice(self, start, end):  # noqa A003
+        """Slice your timeseries for give interval.
+
+        Args:
+            start (datetime or str): lower bound
+            end (datetime or str): upper bound
+
+        Returns:
+            TimeSeries sliced
+        """
         start = timestamp_converter(start)
         end = timestamp_converter(end)
 
@@ -190,6 +212,19 @@ class TimeSeries(SortedDict):
         return newts
 
     def set_interval(self, start, end, value):
+        """Set a value for an interval of time.
+
+        Args:
+            start (datetime or str): lower bound
+            end (datetime or str): upper bound
+            value: the value to be set
+
+        Returns:
+            self
+
+        Raises:
+            NotImplementedError: when no default is set.
+        """
         if not self._has_default:
             msg = "At the moment, you have to set a default for set_interval"
             raise NotImplementedError(msg)
@@ -199,13 +234,13 @@ class TimeSeries(SortedDict):
 
         if self.empty:
             self[end] = self.default
-            return
+            return self
 
         end_is_key = end in self.keys()
         if sliced_ts.empty:
             if not end_is_key:
                 self[end] = self.default
-            return
+            return self
 
         last_value_in_bound = sliced_ts[sliced_ts.upper_bound]
         for key in sliced_ts.keys():
@@ -214,6 +249,8 @@ class TimeSeries(SortedDict):
         self[start] = value  # may have been popped
         if not end_is_key:  # only assign if not already defined
             self[end] = last_value_in_bound
+
+        return self
 
     def _operate(self, other, operator):
         if isinstance(other, self.__class__):
@@ -286,12 +323,37 @@ class TimeSeries(SortedDict):
     __ge__ = operation_factory('__ge__')
 
     def floor(self, other):
+        """Floor your timeseries, applying a min key by key.
+
+        Args:
+            other (TimeSeries or numeric): values to floor on.
+
+        Returns:
+            TimeSeries floored
+        """
         return self._operate(other, min)
 
     def ceil(self, other):
+        """Ceil your timeseries, applying a max key by key.
+
+        Args:
+            other (TimeSeries or numeric): values to ceil on.
+
+        Returns:
+            TimeSeries ceiled
+        """
         return self._operate(other, max)
 
     def mask_update(self, other, mask):
+        """Update your timeseries with another one in regards of a mask.
+
+        Args:
+            other (TimeSeries): values taken to update.
+            mask (TimeSeries): timeseries with boolean values.
+
+        Returns:
+            TimeSeries
+        """
         # Type checks
         if not isinstance(other, TimeSeries):
             msg = 'other should be of type TimeSeries, got {}'
@@ -319,13 +381,13 @@ class TimeSeries(SortedDict):
             if mask[key]:
                 self[key] = other[key]
 
-    @property
-    def empty(self):
-        return len(self) == 0
-
     def compact(self):
         """Convert this instance to a compact version: consecutive measurement of the
-        same value are discarded."""
+        same value are discarded.
+
+        Returns:
+            TimeSeries
+        """
         ts = TimeSeries(default=self.default)
         for time, value in self.items():
             should_set_it = ts.empty or (ts[time] != value)
@@ -338,6 +400,18 @@ class TimeSeries(SortedDict):
                start=None,
                end=None,
                interpolate=_default_interpolate):
+        """Sample your timeseries into Evenly Spaced TimeSeries.
+
+        Args:
+            freq (timedelta): frequency to convert in.
+            start (datetime): left bound. Default to None, which result into
+                :meth:`~timeseries.TimeSeries.lower_bound`.
+            end (datetime): right bound. Default to None, which result into
+                :meth:`~timeseries.TimeSeries.upper_bound`.
+
+        Returns:
+            evenly-spaced timeseries.
+        """
         if not isinstance(freq, timedelta):
             msg = 'Freq should be of instance timedelta, got {}'
             raise TypeError(msg.format(type(freq)))

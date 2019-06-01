@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import os
 from pathlib import Path
 
@@ -51,7 +54,7 @@ master_doc = "index"
 
 # General information about the project.
 project = u"ticts"
-author = "GEM"
+author = ""
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"

@@ -13,8 +13,11 @@
   :alt: Python version 3.5+
 
 
+.. |logo| image:: docs/_static/img/logo.svg
+   :target: https://github.com/gjeusel/ticts
+
 ===============================
-ticts
+ticts |logo|
 ===============================
 |codecov| |travis| |python| |pypi|
 
@@ -24,9 +27,6 @@ Greatly inspired by `traces <https://github.com/datascopeanalytics/traces>`_.
 
 
 Get Started `Notebook <https://mybinder.org/v2/gh/gjeusel/ticts/master?filepath=docs%2FTutorial.ipynb>`_.
-
-.. |example| image:: _static/example.png
-|example|
 
 Usage
 -----
@@ -60,3 +60,7 @@ Installation
 .. code:: bash
 
     pip install ticts
+
+
+.. |example| image:: docs/_static/img/example.png
+|example|

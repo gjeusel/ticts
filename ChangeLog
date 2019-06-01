@@ -1,0 +1,92 @@
+CHANGES
+=======
+
+0.1.1
+-----
+
+* Better handle of default value
+* Adding picture to README
+* Small fix on bounds of tutorial
+* Small fix README
+* Adapt plot ranges in Tutorial notebook
+* Add reference to traces
+
+0.1.0
+-----
+
+* Enhance Readme and Add jupter notebook
+* cleaning
+* Allow operations on mixed ts with default or not
+* Add custom repr
+
+0.0.7
+-----
+
+* Add permissive mode
+
+0.0.6
+-----
+
+* Authorize getitem on str
+* Improving \_\_init\_\_
+* move the test to a more appropriate class
+* make 0 a possible value for default
+
+0.0.5
+-----
+
+* Improve conditional\_update and rename it
+
+0.0.4
+-----
+
+* Fix bug on slice with bounds
+* Add operators le lt ge gt and conditional\_update
+* Fix several bugs:
+* Add recursive operations
+* Fix bug on set\_interval
+
+0.0.2
+-----
+
+* Add pandas potential dep
+
+0.0.1
+-----
+
+* Seed isort to get consistent behaviour in CI
+* Linter
+* Update travis cfg to deploy on tag
+* Authorize setitem on slice calling set\_interval
+* re-organize tests
+* Implement \_get\_linear\_interpolate
+* Linting
+* fix tests
+* add show diff on failure
+* Add sample method
+* cleaning up
+* Add floor and ceil operators
+* Update license in setup.cfg
+* Add test
+* fix pre-commit version
+* Fix bug on set\_interval
+* Comment it
+* Change the init to get copy and deepcopy works
+* Add logging
+* Add tests for set\_interval on empty
+* Add set\_interval method
+* Linting
+* Comment cov when locally run
+* Linting
+* Make compact work again
+* Update precommit
+* Improve init and add slicing capabilities
+* Change of design
+* Linter
+* Go for yapf instead of black
+* Linting
+* Update pre-commit
+* Configuring travis
+* Linter
+* put first stones
+* First commit thx to cookiecutter

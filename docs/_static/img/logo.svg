@@ -1,37 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 17.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!-- Svg Vector Icons : http://www.onlinewebfonts.com/icon -->
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="250px" height="250px" viewBox="0 0 250 250">
-     <defs>
-         <linearGradient id="bottom_1_" gradientUnits="userSpaceOnUse" x1="175" y1="111.8719" x2="175" y2="-135.0812" gradientTransform="matrix(1 0 0 -1 -50 111)">
-         	<stop  offset="0" style="stop-color:#002E3B"/>
-         	<stop  offset="1" style="stop-color:#002639"/>
-         </linearGradient>
-         <radialGradient id="right_2_" cx="63.3041" cy="235.6129" r="219.7985" gradientUnits="userSpaceOnUse">
-         	<stop  offset="0" style="stop-color:#00BC85"/>
-         	<stop  offset="1" style="stop-color:#149D91"/>
-         </radialGradient>
-         <radialGradient id="right-2_1_" cx="186.8275" cy="123.7814" r="265.5574" gradientTransform="matrix(1 0 0 -1 -50 111)" gradientUnits="userSpaceOnUse">
-         	<stop  offset="0" style="stop-color:#00BC85"/>
-         	<stop  offset="1" style="stop-color:#149D91"/>
-         </radialGradient>
-         <radialGradient id="left_2_" cx="118.0562" cy="143.2378" r="507.5908" gradientTransform="matrix(1 0 0 -1 -50 111)" gradientUnits="userSpaceOnUse">
-         	<stop  offset="0" style="stop-color:#004473"/>
-         	<stop  offset="1" style="stop-color:#00345F"/>
-         </radialGradient>
-         <linearGradient id="top_1_" gradientUnits="userSpaceOnUse" x1="174.922" y1="110.6136" x2="174.922" y2="-135.0903" gradientTransform="matrix(1 0 0 -1 -50 111)">
-         	<stop  offset="0" style="stop-color:#002E3B"/>
-         	<stop  offset="1" style="stop-color:#002639"/>
-         </linearGradient>
-     </defs>
-<polygon id="bottom" fill="url(#bottom_1_)" stroke="url(#bottom_1_)" points="124.913,210.751 89.063,193.264 89.103,193.245 89.093,193.24 51,211.82 
-	124.941,247.884 199,211.9 160.771,192.962 "/>
-<polygon id="right_1_" fill="url(#right_2_)" stroke="url(#right_2_)" points="51.091,211.945 51.091,174.781 87.749,156.903 125.455,175.5 "/>
-<polygon id="right-2" fill="url(#right-2_1_)" stroke="url(#right-2_1_)" points="165.596,58.995 165.596,117.758 165.596,117.758 165.596,117.758 
-	124.611,137.737 162.301,156.506 198.996,138.632 198.996,38.123 "/>
-<polygon id="left_1_" fill="url(#left_2_)" stroke="url(#left_2_)" points="199,211.912 199,211.912 199,174.746 84.498,117.723 84.498,58.96 
-	51.096,38.088 51.096,138.597 "/>
-<polygon id="top" fill="url(#top_1_)" stroke="url(#top_1_)" points="84.396,58.904 84.396,58.892 124.939,39.118 165.485,58.892 198.844,38.046 
-	124.912,1.985 51,38.035 51,38.067 84.368,58.918 "/>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 1000 1000" enable-background="new 0 0 1000 1000" xml:space="preserve">
+<metadata> Svg Vector Icons : http://www.onlinewebfonts.com/icon </metadata>
+<g><g transform="translate(0.000000,511.000000) scale(0.100000,-0.100000)"><path d="M4627.3,2848.3c-101.5-42.1-99.5-36.4-392.4-1602.3c-157-827-287.1-1506.5-291-1512.3c-5.7-3.8-59.3,45.9-120.6,111c-451.8,482.4-505.4,532.2-580,532.2c-40.2,0-90-13.4-112.9-28.7c-23-17.2-137.8-189.5-254.6-382.8l-212.5-354.1H1445.7H230.2l-65.1-65.1C123-496,100-538.1,100-568.7c0-67,47.9-158.9,93.8-183.8c24.9-11.5,482.4-19.2,1338.1-19.2c1257.7,0,1301.7,1.9,1347.7,36.4c26.8,21,122.5,164.6,214.4,317.8c91.9,153.1,174.2,277.6,183.8,273.7c7.7-3.8,166.5-166.5,352.2-363.7c356.1-377.1,398.2-407.7,501.5-356c28.7,13.4,67,45.9,86.1,72.7c23,32.5,93.8,371.4,231.6,1104.5c107.2,581.9,201,1050.9,208.7,1043.3c5.7-7.7,116.8-878.7,245-1937.2c187.6-1525.7,243.1-1933.4,268-1971.7c70.8-101.5,199.1-118.7,285.2-38.3c26.8,24.9,88.1,187.6,176.1,463.3c76.6,235.5,204.8,639.4,289.1,901.6l153.1,472.8h271.8c208.7,0,283.3,5.7,312,28.7c23,15.3,134,143.6,248.8,287.1C7022-295,7119.6-178.2,7125.4-178.2c5.7-1.9,95.7-114.9,201-252.7c105.3-137.8,216.3-269.9,245-294.8l55.5-46h1073.9c989.7,0,1079.7,3.8,1116,34.5c103.4,82.3,111,191.4,19.1,283.3l-65.1,65.1h-997.3h-995.4l-262.2,335c-143.6,183.8-275.7,344.6-294.8,354.1c-45.9,24.9-145.5,24.9-189.5,0c-19.1-9.6-153.1-162.7-296.7-342.6l-262.2-325.4l-313.9-5.8c-273.7-5.7-315.9-9.6-352.2-42.1c-24.9-23-80.4-162.7-153.1-392.4c-63.2-195.3-141.6-442.2-176.1-547.5c-32.5-105.3-63.2-181.9-67-172.3c-3.8,11.5-55.5,411.6-112.9,890.1c-350.3,2842.7-413.5,3344.2-430.7,3390.2C4830.2,2838.7,4717.2,2884.6,4627.3,2848.3z"/></g></g>
 </svg>
