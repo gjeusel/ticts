@@ -116,6 +116,17 @@ class TestTimeSeriesRepr:
         assert 'default=' in repr(smallts_withdefault)
 
 
+class TestTimeSeriesDefault:
+    @pytest.mark.parametrize('default', [None, 0, False])
+    def test_it_has_default(self, default):
+        ts = TimeSeries(default=default)
+        assert ts._has_default
+
+    def test_it_has_no_default(self):
+        ts = TimeSeries()
+        assert not ts._has_default
+
+
 class TestTimeSeriesBoundProperties:
     def test_lower_bound(self, smallts):
         assert smallts.lower_bound == smallts.keys()[0]
@@ -379,7 +390,7 @@ class TestTimeSeriesOperators:
 
     def test_add_with_keys_differences_without_default(self, smallts, otherts):
         ts = smallts + otherts
-        assert ts.default is None
+        assert not ts._has_default
         assert CURRENT + 1 * ONEHOUR not in ts.keys()
         assert ts[CURRENT + 2 * ONEHOUR] == 2 + 1000
         assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 + 2000
@@ -389,7 +400,7 @@ class TestTimeSeriesOperators:
     def test_add_with_keys_differences_with_mixed_default_nodefault(
             self, smallts_withdefault, otherts):
         ts = smallts_withdefault + otherts
-        assert ts.default is None
+        assert not ts._has_default
         assert CURRENT + 1 * ONEHOUR not in ts.keys()
         assert ts[CURRENT + 2 * ONEHOUR] == 2 + 1000
         assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 + 2000
@@ -583,9 +594,8 @@ class TestTimeSeriesSample:
 
     def test_sample_with_start_out_of_left_bounds(self, smallts):
         ts = smallts.sample(freq=HALFHOUR, start=CURRENT - ONEHOUR)
-        default = smallts.default
-        assert ts[CURRENT - ONEHOUR] == default
-        assert ts[CURRENT - HALFHOUR] == default
+        CURRENT - ONEHOUR not in ts.keys()
+        CURRENT - HALFHOUR not in ts.keys()
         assert ts[CURRENT] == 0
         assert CURRENT + HALFHOUR in ts.keys()
 
