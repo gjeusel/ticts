@@ -248,9 +248,13 @@ class TestTimeSeriesGetitem:
         assert smallts[start:end + 1 * ONEHOUR] == expected_ts
 
     def test_get_on_slice_entirely_out_of_bounds_on_right_side(self, smallts):
-        assert smallts[CURRENT + 10 * ONEHOUR:CURRENT + 12 * ONEHOUR].empty
+        start = CURRENT + 10 * ONEHOUR
+        end = CURRENT + 12 * ONEHOUR
+        expected = TimeSeries({start: smallts[start]})
+        sliced = smallts[start:end]
+        assert sliced == expected
 
-    def test_get_on_slicout_of_bounds_on_right_side(self, smallts):
+    def test_get_on_slice_out_of_bounds_on_right_side(self, smallts):
         sliced_ts = smallts[CURRENT + 9 * ONEHOUR:CURRENT + 12 * ONEHOUR]
         expected_dct = {CURRENT + 9 * ONEHOUR: 9}
         expected_ts = TimeSeries(expected_dct, default=smallts.default)
@@ -301,7 +305,7 @@ class TestTimeSeriesSetInterval:
         smallts_withdefault.set_interval(start, end, 1000)
         assert smallts_withdefault[CURRENT + 10 * ONEHOUR] == 9
         assert smallts_withdefault[start] == 1000
-        assert smallts_withdefault[end] == smallts_withdefault.default
+        assert smallts_withdefault[end] == 9
 
     def test_single_set_interval_start_before_first_key(
             self, smallts_withdefault):

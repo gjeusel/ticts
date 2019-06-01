@@ -204,7 +204,6 @@ class TimeSeries(SortedDict):
                 newts[key] = value
 
         should_add_left_closure = (start not in newts.keys()
-                                   and not newts.empty
                                    and start >= self.lower_bound)
         if should_add_left_closure:
             newts[start] = self[start]  # is applying get_previous on self
