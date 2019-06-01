@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Fix issue on set\_interval
 * Add scale
 * Work on Docs
 
