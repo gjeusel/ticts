@@ -229,18 +229,21 @@ class TimeSeries(SortedDict):
             msg = "At the moment, you have to set a default for set_interval"
             raise NotImplementedError(msg)
 
+        start = timestamp_converter(start)
+        end = timestamp_converter(end)
+
         sliced_ts = self.slice(start, end)
         self[start] = value
 
         if self.empty:
             self[end] = self.default
-            return self
+            return
 
         end_is_key = end in self.keys()
         if sliced_ts.empty:
             if not end_is_key:
                 self[end] = self.default
-            return self
+            return
 
         last_value_in_bound = sliced_ts[sliced_ts.upper_bound]
         for key in sliced_ts.keys():
@@ -249,8 +252,6 @@ class TimeSeries(SortedDict):
         self[start] = value  # may have been popped
         if not end_is_key:  # only assign if not already defined
             self[end] = last_value_in_bound
-
-        return self
 
     def _operate(self, other, operator):
         if isinstance(other, self.__class__):

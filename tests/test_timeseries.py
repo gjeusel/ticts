@@ -1,5 +1,5 @@
 from copy import copy, deepcopy
-from datetime import timedelta
+from datetime import datetime, timedelta
 from unittest import mock
 
 import pytest
@@ -332,10 +332,21 @@ class TestTimeSeriesSetInterval:
                                    ONEHOUR] == emptyts_withdefault.default
         len(emptyts_withdefault.keys()) == 2
 
-    def test_same_consecutive_set_interval(self, smallts_withdefault):
-        smallts_withdefault.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
+    @pytest.mark.parametrize('start, end', (
+        (CURRENT, CURRENT + 9 * ONEHOUR),
+        (CURRENT + 5 * ONEHOUR, CURRENT + 12 * ONEHOUR),
+        (datetime(2019, 1, 1) + 5 * ONEHOUR,
+         datetime(2019, 1, 1) + 12 * ONEHOUR),
+        ('2019-01-01T05:00:00', '2019-01-01T12:00:00+02:00'),
+    ))
+    def test_same_consecutive_set_interval(self, smallts_withdefault, start,
+                                           end):
+        smallts_withdefault.set_interval(start, end, 1000)
         first_time = deepcopy(smallts_withdefault)
-        smallts_withdefault.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
+
+        for _ in range(10):
+            smallts_withdefault.set_interval(start, end, 1000)
+
         assert first_time == smallts_withdefault
 
     def test_consecutive_set_interval_on_empty_with_default(self, emptyts):
