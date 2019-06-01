@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+0.1.2
+-----
+
+* Fix on rule of slice out of right bound
+* Improving index
 * Add more quickstart
 * Fix issue on set\_interval
 * Add scale
