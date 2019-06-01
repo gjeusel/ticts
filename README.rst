@@ -12,19 +12,23 @@
   :target: https://www.python.org/downloads/release/python-360/
   :alt: Python version 3.5+
 
-
 .. |logo| image:: docs/_static/img/logo.svg
    :target: https://github.com/gjeusel/ticts
+   :width: 50px
+   :height: 20px
+
 
 ===============================
 ticts |logo|
 ===============================
-|codecov| |travis| |python| |pypi|
+|codecov| |travis| |python| |pypi| |readthedocs|
 
 
 A Python library for unevenly-spaced time series analysis.
 Greatly inspired by `traces <https://github.com/datascopeanalytics/traces>`_.
 
+.. |example| image:: docs/_static/img/example.png
+|example|
 
 Get Started `Notebook <https://mybinder.org/v2/gh/gjeusel/ticts/master?filepath=docs%2FTutorial.ipynb>`_.
 
@@ -61,6 +65,3 @@ Installation
 
     pip install ticts
 
-
-.. |example| image:: docs/_static/img/example.png
-|example|
