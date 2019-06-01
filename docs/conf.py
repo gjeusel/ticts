@@ -35,7 +35,8 @@ ipython_mplbackend = ""
 
 # Execute ipython_startup_file before each ipython embed
 ipython_startup_file = Path(__file__).parent / "ipython_init.py"
-ipython_execlines = ["%run {}".format(ipython_startup_file.as_posix())]
+content = open(ipython_startup_file).read()
+ipython_execlines = [content]
 
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ['.']
