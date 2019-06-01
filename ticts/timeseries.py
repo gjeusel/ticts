@@ -10,6 +10,8 @@ from .utils import MAXTS, MINTS, timestamp_converter
 
 logger = logging.getLogger(__name__)
 
+NO_DEFAULT = object()
+
 
 def operation_factory(operation):
     def fn_operation(self, other):
@@ -38,7 +40,7 @@ def _get_keys_for_operation(ts1, ts2, *args):
 
     lower_bound = MINTS
     for ts in all_ts:
-        if ts.default is None:
+        if not ts._has_default:
             lower_bound = max(lower_bound, ts.lower_bound)
 
     return [key for key in all_keys if key >= lower_bound]
@@ -61,9 +63,13 @@ class TimeSeries(SortedDict):
             return MAXTS
         return self.keys()[-1]
 
+    @property
+    def _has_default(self):
+        return self.default != NO_DEFAULT
+
     def __init__(self, *args, **kwargs):
         """"""
-        self.default = kwargs.pop('default', None)
+        self.default = kwargs.pop('default', NO_DEFAULT)
         self.permissive = kwargs.pop('permissive', True)
 
         # SortedDict use the first arg given and check if is a callable
@@ -103,7 +109,7 @@ class TimeSeries(SortedDict):
 
         basemsg = "Getting {} but default attribute is not set".format(key)
         if self.empty:
-            if self.default:
+            if self._has_default:
                 return self.default
             else:
                 if self.permissive:
@@ -113,7 +119,7 @@ class TimeSeries(SortedDict):
                         "{} and timeseries is empty".format(basemsg))
 
         if key < self.lower_bound:
-            if self.default is not None:
+            if self._has_default:
                 return self.default
             else:
                 if self.permissive:
@@ -184,7 +190,7 @@ class TimeSeries(SortedDict):
         return newts
 
     def set_interval(self, start, end, value):
-        if not self.default:
+        if not self._has_default:
             msg = "At the moment, you have to set a default for set_interval"
             raise NotImplementedError(msg)
 
@@ -197,7 +203,7 @@ class TimeSeries(SortedDict):
 
         end_is_key = end in self.keys()
         if sliced_ts.empty:
-            if self.default and not end_is_key:
+            if not end_is_key:
                 self[end] = self.default
             return
 
@@ -221,8 +227,8 @@ class TimeSeries(SortedDict):
 
         all_keys = set(self.keys()).union(set(other.keys()))
 
-        default = None
-        if self.default is not None and other.default is not None:
+        default = NO_DEFAULT
+        if self._has_default and other._has_default:
             default = operator(self.default, other.default)
 
         all_keys = _get_keys_for_operation(self, other)
@@ -243,7 +249,7 @@ class TimeSeries(SortedDict):
                 msg.format(operator.__name__, type(sample_value), type(value)))
 
         default = None
-        if self.default:
+        if self._has_default:
             default = operator(self.default, value)
 
         ts = TimeSeries(default=default)
@@ -296,17 +302,17 @@ class TimeSeries(SortedDict):
             raise TypeError(msg)
 
         # Empty ts checks
-        if mask.empty and not mask.default:
+        if mask.empty and not mask._has_default:
             msg = "mask is empty and has no default set"
             raise ValueError(msg)
 
-        if other.empty and not other.default:
+        if other.empty and not other._has_default:
             msg = "other is empty and has no default set"
             raise ValueError(msg)
 
         all_keys = _get_keys_for_operation(self, other)
 
-        if not mask.default:
+        if not mask._has_default:
             all_keys = [key for key in all_keys if key >= mask.lower_bound]
 
         for key in all_keys:
@@ -343,7 +349,7 @@ class TimeSeries(SortedDict):
 
         if start:
             start = timestamp_converter(start)
-            if not self.default:
+            if not self._has_default:
                 start = max(start, self.lower_bound)
 
         if end:
@@ -364,7 +370,7 @@ class TimeSeries(SortedDict):
 
     def __repr__(self):
         header = "<TimeSeries>"
-        if self.default:
+        if self._has_default:
             header = "{} (default={})".format(header, self.default)
 
         def generate_content(keys):
