@@ -29,6 +29,9 @@ jobs:
       script: pre-commit run --all-files --show-diff-on-failure
 
 deploy:
+  # If you need to deploy files Travis has built, use the next line
+  skip_cleanup: true
+
   provider: pypi
   distributions: sdist bdist_wheel
   user: gjeusel
