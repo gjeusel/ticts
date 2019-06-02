@@ -17,17 +17,17 @@
    :width: 50px
    :height: 20px
 
+.. |example| image:: docs/_static/img/example.png
 
-===============================
+============
 ticts |logo|
-===============================
+============
 |codecov| |travis| |python| |pypi| |readthedocs|
 
 
 A Python library for unevenly-spaced time series analysis.
 Greatly inspired by `traces <https://github.com/datascopeanalytics/traces>`_.
 
-.. |example| image:: docs/_static/img/example.png
 |example|
 
 Get Started `Notebook <https://mybinder.org/v2/gh/gjeusel/ticts/master?filepath=docs%2FTutorial.ipynb>`_.

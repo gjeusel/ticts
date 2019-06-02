@@ -4,6 +4,8 @@ CHANGES
 0.1.3
 -----
 
+* restructured text of PyPI does not allow image in title
+* Skip cleanup in deploy
 * Improve notebook
 * change strategy to be able to build doc
 * Update changelog
