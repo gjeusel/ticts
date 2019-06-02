@@ -199,9 +199,8 @@ class TimeSeries(SortedDict):
 
         newts = TimeSeries(default=self.default)
 
-        for key, value in self.items():
-            if start <= key < end:
-                newts[key] = value
+        for key in self.irange(start, end, inclusive=(True, False)):
+            newts[key] = self[key]
 
         should_add_left_closure = (start not in newts.keys()
                                    and start >= self.lower_bound)
@@ -231,26 +230,18 @@ class TimeSeries(SortedDict):
         start = timestamp_converter(start)
         end = timestamp_converter(end)
 
-        sliced_ts = self.slice(start, end)
-        self[start] = value
-
-        if self.empty:
-            self[end] = self.default
-            return
+        keys = self.irange(start, end, inclusive=(True, False))
 
         end_is_key = end in self.keys()
-        if sliced_ts.empty:
-            if not end_is_key:
-                self[end] = self.default
-            return
+        if not end_is_key:
+            last_value = self[end]
 
-        last_value_in_bound = sliced_ts[sliced_ts.upper_bound]
-        for key in sliced_ts.keys():
-            self.pop(key)
+        for key in list(keys):
+            del self[key]
 
-        self[start] = value  # may have been popped
-        if not end_is_key:  # only assign if not already defined
-            self[end] = last_value_in_bound
+        self[start] = value
+        if not end_is_key:
+            self[end] = last_value
 
     def _operate(self, other, operator):
         if isinstance(other, self.__class__):
