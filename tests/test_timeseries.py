@@ -206,6 +206,14 @@ class TestTimeSeriesGetitem:
     def test_get_on_previous_out_of_right_bound(self, smallts):
         assert smallts[CURRENT + 10 * ONEHOUR] == 9
 
+    def test_get_on_previous_out_of_left_bound_no_default(self, smallts):
+        assert smallts[CURRENT - ONEHOUR] is None
+
+    def test_get_on_previous_out_of_left_bound_with_default(
+            self, smallts_withdefault):
+        assert smallts_withdefault[CURRENT -
+                                   ONEHOUR] == smallts_withdefault.default
+
     # tests on '_get_linear_interpolate'
 
     @pytest.mark.parametrize('time_idx, expected', [
@@ -218,6 +226,15 @@ class TestTimeSeriesGetitem:
 
     def test_get_linear_interpolate_out_of_right_bound(self, smallts):
         assert smallts[CURRENT + 10 * ONEHOUR, 'linear'] == 9
+
+    def test_get_linear_interpolate_out_of_left_bound_no_default(
+            self, smallts):
+        assert smallts[CURRENT - ONEHOUR, 'linear'] is None
+
+    def test_get_linear_interpolate_out_of_left_bound_with_default(
+            self, smallts_withdefault):
+        assert smallts_withdefault[CURRENT - ONEHOUR,
+                                   'linear'] == smallts_withdefault.default
 
     # test on 'slice'
 
