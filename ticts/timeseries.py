@@ -80,6 +80,15 @@ class TimeSeries(SortedDict):
         """Return whether the TimeSeries is empty or not."""
         return len(self) == 0
 
+    def default_at(self, key):
+        if not self._has_default:
+            raise Exception('No default set.')
+
+        if isinstance(self.default, TimeSeries):
+            return self.default[key]
+        else:
+            return self.default
+
     def __init__(self, *args, **kwargs):
         """"""
         self.default = kwargs.pop('default', NO_DEFAULT)
@@ -133,7 +142,7 @@ class TimeSeries(SortedDict):
 
         if key < self.lower_bound:
             if self._has_default:
-                return self.default
+                return self.default_at((key, interpolate))
             else:
                 if self.permissive:
                     return
@@ -436,7 +445,11 @@ class TimeSeries(SortedDict):
     def __repr__(self):
         header = "<TimeSeries>"
         if self._has_default:
-            header = "{} (default={})".format(header, self.default)
+            if isinstance(self.default):
+                default = 'TS'
+            else:
+                default = self.default
+            header = "{} (default={})".format(header, default)
 
         def generate_content(keys):
             return '\n'.join(

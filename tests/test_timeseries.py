@@ -206,6 +206,26 @@ class TestTimeSeriesGetitem:
     def test_get_on_previous_out_of_right_bound(self, smallts):
         assert smallts[CURRENT + 10 * ONEHOUR] == 9
 
+    def test_get_on_previous_out_of_left_bound_no_default(self, smallts):
+        assert smallts[CURRENT - ONEHOUR] is None
+
+    def test_get_on_previous_out_of_left_bound_with_default(
+            self, smallts_withdefault):
+        assert smallts_withdefault[CURRENT -
+                                   ONEHOUR] == smallts_withdefault.default
+
+    def test_get_on_previous_with_default_being_a_timeseries(self, smallts):
+        ts = TimeSeries(default=smallts)
+        dtref = CURRENT + 4 * ONEHOUR
+        ts[dtref] = 10.
+
+        tested_dt = [CURRENT + i * ONEHOUR for i in range(-1, 8)]
+        for dt in tested_dt:
+            if dt < dtref:
+                assert ts[dt] == smallts[dt]
+            else:
+                assert ts[dt] == 10.
+
     # tests on '_get_linear_interpolate'
 
     @pytest.mark.parametrize('time_idx, expected', [
@@ -218,6 +238,27 @@ class TestTimeSeriesGetitem:
 
     def test_get_linear_interpolate_out_of_right_bound(self, smallts):
         assert smallts[CURRENT + 10 * ONEHOUR, 'linear'] == 9
+
+    def test_get_linear_interpolate_out_of_left_bound_no_default(
+            self, smallts):
+        assert smallts[CURRENT - ONEHOUR, 'linear'] is None
+
+    def test_get_linear_interpolate_out_of_left_bound_with_default(
+            self, smallts_withdefault):
+        assert smallts_withdefault[CURRENT - ONEHOUR,
+                                   'linear'] == smallts_withdefault.default
+
+    def test_get_on_linear_with_default_being_a_timeseries(self, smallts):
+        ts = TimeSeries(default=smallts)
+        dtref = CURRENT + 4 * ONEHOUR
+        ts[dtref] = 10.
+
+        tested_dt = [CURRENT + i * ONEHOUR / 2 for i in range(-1, 8 * 2)]
+        for dt in tested_dt:
+            if dt < dtref:
+                assert ts[dt, 'linear'] == smallts[dt, 'linear']
+            else:
+                assert ts[dt] == 10.
 
     # test on 'slice'
 
