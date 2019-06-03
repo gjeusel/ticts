@@ -232,16 +232,13 @@ class TimeSeries(SortedDict):
 
         keys = self.irange(start, end, inclusive=(True, False))
 
-        end_is_key = end in self.keys()
-        if not end_is_key:
-            last_value = self[end]
+        last_value = self[end]
 
         for key in list(keys):
             del self[key]
 
         self[start] = value
-        if not end_is_key:
-            self[end] = last_value
+        self[end] = last_value
 
     def _operate(self, other, operator):
         if isinstance(other, self.__class__):

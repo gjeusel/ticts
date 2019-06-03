@@ -279,7 +279,7 @@ class TestTimeSeriesGetitem:
 
 
 class TestTimeSeriesSetInterval:
-    def test_set_interval_raises_when_no_default(self, smallts):
+    def test_set_interval_when_no_default_raises(self, smallts):
         with pytest.raises(NotImplementedError):
             smallts.set_interval(CURRENT, CURRENT + ONEHOUR, 1000)
 
@@ -289,12 +289,14 @@ class TestTimeSeriesSetInterval:
         expected_keys = [CURRENT, CURRENT + ONEHOUR, CURRENT + 9 * ONEHOUR]
         assert list(smallts_withdefault.keys()) == expected_keys
         assert smallts_withdefault[CURRENT + ONEHOUR] == 1000
+        assert smallts_withdefault[CURRENT + 9 * ONEHOUR] == 9.
 
     def test_single_set_interval_start_on_first_key(self, smallts_withdefault):
         smallts_withdefault.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
         expected_keys = [CURRENT, CURRENT + 9 * ONEHOUR]
         assert list(smallts_withdefault.keys()) == expected_keys
         assert smallts_withdefault[CURRENT] == 1000
+        assert smallts_withdefault[CURRENT + 9 * ONEHOUR] == 9.
 
     @pytest.mark.parametrize('start, end', [
         (CURRENT + ONEHOUR, CURRENT + 10 * ONEHOUR),
@@ -320,7 +322,10 @@ class TestTimeSeriesSetInterval:
         start = CURRENT + 11 * ONEHOUR
         end = CURRENT + 13 * ONEHOUR
         smallts_withdefault.set_interval(start, end, 1000)
+
+        assert CURRENT + 10 * ONEHOUR not in smallts_withdefault.keys()
         assert smallts_withdefault[CURRENT + 10 * ONEHOUR] == 9
+
         assert smallts_withdefault[start] == 1000
         assert smallts_withdefault[end] == 9
 
@@ -344,7 +349,8 @@ class TestTimeSeriesSetInterval:
         emptyts.default = 10
         emptyts.set_interval(CURRENT, CURRENT + ONEHOUR, 1)
         assert emptyts[CURRENT] == 1
-        len(emptyts.keys()) == 1
+        assert emptyts[CURRENT + ONEHOUR] == 10
+        assert len(emptyts.keys()) == 2
 
     def test_set_interval_on_empty_with_default(self, emptyts_withdefault):
         emptyts_withdefault.set_interval(CURRENT, CURRENT + ONEHOUR, 1)
