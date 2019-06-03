@@ -1,7 +1,6 @@
-language: python
+sudo: false
 
-python:
-  - 3.6
+language: python
 
 install:
   - pip install -U pip wheel
@@ -15,29 +14,34 @@ cache:
 stages:
   - test
   - linter
-  - deploy
+  - name: deploy
+    if: tag IS present
 
 jobs:
   include:
+
     - stage: test
       name: "Tests"
       script: pytest --cov-report=term-missing --cov=ticts
       after_success:
         - codecov
+
     - stage: linter
       name: "Linter"
       script: pre-commit run --all-files --show-diff-on-failure
 
-deploy:
-  # If you need to deploy files Travis has built, use the next line
-  skip_cleanup: true
-
-  provider: pypi
-  distributions: sdist bdist_wheel
-  user: gjeusel
-  on:
-    tags: true
-    repo: gjeusel/ticts
-    python: 3.6
-  password:
-    secure: Wem1jf+Y5JmByVi6w65ecQuD1sGK1QT49TyNlFAY2QZAkRD5Sfb2KAkRT8u5W19tQkkgEQMlpIhKnuM1uogKeVi7fpe7n98GwCdlTUVfujNosl1mc158/iHGYV9d/Hs4aUYUFb32wiMKHc0v2zDxciWwZGExWKc0xp67f1l6p51ITHzy6M9S1auQTko4yC5Fo0B3POKLBPNWY+c9DGUkqb5ovOcdsxSY3dOzaEW4Ar5+hlNpQfDoh0+/AxE0Ite+3QbCxdXTNMMm7f/EjyJqnlFSzpcVDf693TwsUakM9eV3J/Xn6aoyJwGGd1UT4v5w22m9WSqVOJgmmLoWNF8bAOd6xZatvbudohiOVH1lCYLi/XJjwORUeimaM1+zgKNeRilYuP1ZcZQSh5RFta/09Lr4DkUwRup9SBoOLhLGqMm15XMRBiiTmd/G5SkWIsCPG1XlfM9dPJXVOpCIvpsQ7EidtBWkxw2oWFFvOYe2wh/fBqhkSnaxSDNtKdGMPa/fcKmMouLP8wyCmV19P2EKRZu9lbMiZoHgSP7UtpOh9omEwYVaoTo8X2Hh4UP4wkI86hwGyxXeWh68RmFEjjHlnE62pPkkemMSBWUicxrIH44jukuKjll9lPuQp2N8G9JF3jgOzyIlf9gnZHbW9YGhzZp/61fB4lArxyfzoTK4HXE=
+    - stage: deploy
+      python: 3.6
+      script: skip
+      install: skip
+      before_install: skip
+      deploy:
+        skip_cleanup: true
+        provider: pypi
+        distributions: sdist bdist_wheel
+        user: gjeusel
+        on:
+          tags: true
+          repo: gjeusel/ticts
+        password:
+          secure: Wem1jf+Y5JmByVi6w65ecQuD1sGK1QT49TyNlFAY2QZAkRD5Sfb2KAkRT8u5W19tQkkgEQMlpIhKnuM1uogKeVi7fpe7n98GwCdlTUVfujNosl1mc158/iHGYV9d/Hs4aUYUFb32wiMKHc0v2zDxciWwZGExWKc0xp67f1l6p51ITHzy6M9S1auQTko4yC5Fo0B3POKLBPNWY+c9DGUkqb5ovOcdsxSY3dOzaEW4Ar5+hlNpQfDoh0+/AxE0Ite+3QbCxdXTNMMm7f/EjyJqnlFSzpcVDf693TwsUakM9eV3J/Xn6aoyJwGGd1UT4v5w22m9WSqVOJgmmLoWNF8bAOd6xZatvbudohiOVH1lCYLi/XJjwORUeimaM1+zgKNeRilYuP1ZcZQSh5RFta/09Lr4DkUwRup9SBoOLhLGqMm15XMRBiiTmd/G5SkWIsCPG1XlfM9dPJXVOpCIvpsQ7EidtBWkxw2oWFFvOYe2wh/fBqhkSnaxSDNtKdGMPa/fcKmMouLP8wyCmV19P2EKRZu9lbMiZoHgSP7UtpOh9omEwYVaoTo8X2Hh4UP4wkI86hwGyxXeWh68RmFEjjHlnE62pPkkemMSBWUicxrIH44jukuKjll9lPuQp2N8G9JF3jgOzyIlf9gnZHbW9YGhzZp/61fB4lArxyfzoTK4HXE=
