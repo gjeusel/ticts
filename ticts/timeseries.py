@@ -445,7 +445,7 @@ class TimeSeries(SortedDict):
     def __repr__(self):
         header = "<TimeSeries>"
         if self._has_default:
-            if isinstance(self.default):
+            if isinstance(self.default, TimeSeries):
                 default = 'TS'
             else:
                 default = self.default
