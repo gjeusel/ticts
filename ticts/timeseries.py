@@ -156,9 +156,9 @@ class TimeSeries(SortedDict):
         return fn(key)
 
     def _get_previous(self, time):
-        # In this case, bisect_left == bisect_right
+        # In this case, bisect_left == bisect_right == bisect
         # And idx > 0 as we already handled other cases
-        previous_idx = self.bisect_left(time) - 1
+        previous_idx = self.bisect(time) - 1
         time_idx = self.keys()[previous_idx]
         return super().__getitem__(time_idx)
 
