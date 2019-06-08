@@ -152,7 +152,6 @@ class TimeSeries(SortedDict):
         else:
             raise ValueError("'{}' interpolation unknown.".format(interpolate))
 
-        key = timestamp_converter(key)
         return fn(key)
 
     def _get_previous(self, time):
