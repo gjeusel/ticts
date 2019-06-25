@@ -4,7 +4,7 @@ from copy import deepcopy
 from datetime import timedelta
 from itertools import chain
 
-from sortedcontainers import SortedDict
+from sortedcontainers import SortedDict, SortedList
 
 from .utils import MAXTS, MINTS, timestamp_converter
 
@@ -428,6 +428,26 @@ class TimeSeries(SortedDict):
             ts[dt] = self[dt, interpolate]
 
         return ts
+
+    def iterintervals(self, end=None):
+        """Iterator that contain start, end of intervals.
+
+        Args:
+            end (datetime): right bound of last interval.
+        """
+        lst_keys = SortedList(self.keys())
+        if not end:
+            end = self.upper_bound
+        else:
+            end = timestamp_converter(end)
+            if end not in lst_keys:
+                lst_keys.add(end)
+
+        for i, key in enumerate(lst_keys[:-1]):
+            next_key = lst_keys[i + 1]
+            if next_key > end:  # stop there
+                raise StopIteration
+            yield key, next_key
 
     def __repr__(self):
         header = "<TimeSeries>"

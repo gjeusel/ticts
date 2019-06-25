@@ -647,3 +647,21 @@ class TestTimeSeriesSample:
         assert list(ts.keys()) == [
             start + i * freq for i in range(int((end - start) / freq))
         ]
+
+
+class TestIterIntervals:
+    def test_simple_iterintervals(self, smallts):
+        iterator = smallts.iterintervals()
+        result = [(start, end) for start, end in iterator]
+        expected = [(CURRENT + i * ONEHOUR, CURRENT + (i + 1) * ONEHOUR)
+                    for i in range(9)]
+        assert sorted(result) == sorted(expected)
+
+    def test_iterintervals_with_end(self, smallts):
+        end = CURRENT + 3 * ONEHOUR + HALFHOUR
+        iterator = smallts.iterintervals(end)
+        result = [(start, end) for start, end in iterator]
+        expected = [(CURRENT + i * ONEHOUR, CURRENT + (i + 1) * ONEHOUR)
+                    for i in range(3)]
+        expected.append((CURRENT + 3 * ONEHOUR, end))
+        assert sorted(result) == sorted(expected)
