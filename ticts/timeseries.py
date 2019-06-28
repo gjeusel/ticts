@@ -10,7 +10,13 @@ from .utils import MAXTS, MINTS, timestamp_converter
 
 logger = logging.getLogger(__name__)
 
-NO_DEFAULT = object()
+
+class NoDefault():
+    def __repr__(self):
+        return 'No default'
+
+
+NO_DEFAULT = NoDefault()
 
 
 def operation_factory(operation):
@@ -93,6 +99,7 @@ class TimeSeries(SortedDict):
         # SortedDict.__init__ does not use the __setitem__
         # Hence we got to parse datetime keys ourselves.
         super().__init__(_process_args(args, **kwargs))
+        self.me = self
 
     def __setitem__(self, key, value):
         if isinstance(key, slice):
