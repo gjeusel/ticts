@@ -282,7 +282,7 @@ class TimeSeries(SortedDict):
 
         return ts
 
-    def __eq__(self, other):
+    def equals(self, other):
         if not isinstance(other, self.__class__):
             raise TypeError("Can't compare TimeSeries with {}".format(
                 type(other)))
@@ -308,6 +308,7 @@ class TimeSeries(SortedDict):
     __le__ = operation_factory('__le__')
     __gt__ = operation_factory('__gt__')
     __ge__ = operation_factory('__ge__')
+    __eq__ = operation_factory('__eq__')
 
     def floor(self, other):
         """Floor your timeseries, applying a min key by key.

@@ -4,7 +4,7 @@ from unittest import mock
 
 import pytest
 
-from ticts import TimeSeries
+from ticts import TimeSeries, testing
 from ticts.utils import MAXTS, MINTS, timestamp_converter
 
 from .conftest import CURRENT, HALFHOUR, ONEHOUR, ONEMIN
@@ -75,7 +75,7 @@ class TestTimeSeriesSetItem:
         smallts[CURRENT] = 1000
         first_time = deepcopy(smallts)
         smallts[CURRENT] = 1000
-        assert first_time == smallts
+        testing.assert_ts_equal(first_time, smallts)
 
     @mock.patch("ticts.TimeSeries.set_interval")
     def test_setitem_on_slice_calls_set_interval(self, set_interval, smallts):
@@ -86,19 +86,19 @@ class TestTimeSeriesSetItem:
 class TestTimeSeriesCopy:
     def test_copy(self, smallts):
         copied = copy(smallts)
-        assert copied == smallts
+        testing.assert_ts_equal(copied, smallts)
 
     def test_copy_with_default(self, smallts_withdefault):
         copied = copy(smallts_withdefault)
-        assert copied == smallts_withdefault
+        testing.assert_ts_equal(copied, smallts_withdefault)
 
     def test_deepcopy(self, smallts):
         deepcopied = deepcopy(smallts)
-        assert deepcopied == smallts
+        testing.assert_ts_equal(deepcopied, smallts)
 
     def test_deepcopy_with_default(self, smallts_withdefault):
         deepcopied = deepcopy(smallts_withdefault)
-        assert deepcopied == smallts_withdefault
+        testing.assert_ts_equal(deepcopied, smallts_withdefault)
 
 
 class TestTimeSeriesRepr:
@@ -242,17 +242,21 @@ class TestTimeSeriesGetitem:
             self, smallts):
         start = CURRENT
         end = CURRENT + 1 * ONEHOUR
+        sliced_ts = smallts[start:end + ONEHOUR]
+
         data = {start: 0, end: 1}
         expected_ts = TimeSeries(data, default=smallts.default)
-        assert smallts[start:end + ONEHOUR] == expected_ts
+        testing.assert_ts_equal(sliced_ts, expected_ts)
 
     def test_get_on_slice_add_back_previous_value_if_start_not_in_keys(
             self, smallts):
         start = CURRENT + HALFHOUR
         end = CURRENT + ONEHOUR
+        sliced_ts = smallts[start:end + ONEHOUR]
+
         data = {start: 0, end: 1}
         expected_ts = TimeSeries(data, default=smallts.default)
-        assert smallts[start:end + ONEHOUR] == expected_ts
+        testing.assert_ts_equal(sliced_ts, expected_ts)
 
     def test_get_on_slice_entirely_out_of_bounds_on_left_side(self, smallts):
         assert smallts[CURRENT - 2 * ONEHOUR:CURRENT - 1 * ONEHOUR].empty
@@ -261,21 +265,22 @@ class TestTimeSeriesGetitem:
         start = CURRENT - 2 * ONEHOUR
         end = CURRENT
         data = {CURRENT: 0}
+        sliced_ts = smallts[start:end + 1 * ONEHOUR]
         expected_ts = TimeSeries(data, default=smallts.default)
-        assert smallts[start:end + 1 * ONEHOUR] == expected_ts
+        testing.assert_ts_equal(sliced_ts, expected_ts)
 
     def test_get_on_slice_entirely_out_of_bounds_on_right_side(self, smallts):
         start = CURRENT + 10 * ONEHOUR
         end = CURRENT + 12 * ONEHOUR
-        expected = TimeSeries({start: smallts[start]})
-        sliced = smallts[start:end]
-        assert sliced == expected
+        sliced_ts = smallts[start:end]
+        expected_ts = TimeSeries({start: smallts[start]})
+        testing.assert_ts_equal(sliced_ts, expected_ts)
 
     def test_get_on_slice_out_of_bounds_on_right_side(self, smallts):
         sliced_ts = smallts[CURRENT + 9 * ONEHOUR:CURRENT + 12 * ONEHOUR]
         expected_dct = {CURRENT + 9 * ONEHOUR: 9}
         expected_ts = TimeSeries(expected_dct, default=smallts.default)
-        assert sliced_ts == expected_ts
+        testing.assert_ts_equal(sliced_ts, expected_ts)
 
 
 class TestTimeSeriesSetInterval:
@@ -374,7 +379,7 @@ class TestTimeSeriesSetInterval:
         for _ in range(10):
             smallts_withdefault.set_interval(start, end, 1000)
 
-        assert first_time == smallts_withdefault
+        testing.assert_ts_equal(first_time, smallts_withdefault)
 
     def test_consecutive_set_interval_on_empty_with_default(self, emptyts):
         emptyts.default = 10
@@ -410,7 +415,8 @@ class TestTimeSeriesOperators:
     def test_simple_add(self, smallts, smalldict):
         ts = smallts + smallts
         newdct = {key: value + value for key, value in smalldict.items()}
-        assert ts == TimeSeries(newdct)
+        expected_ts = TimeSeries(newdct)
+        testing.assert_ts_equal(ts, expected_ts)
 
     def test_simple_add_one_float(self, smallts, smalldict):
         ts = smallts + 1000
@@ -496,6 +502,10 @@ class TestTimeSeriesOperators:
             val for val in result[CURRENT + 6 * ONEHOUR:CURRENT +
                                   9 * ONEHOUR].values()
         ])
+
+    def test_simple_eq(self, smallts):
+        ts = smallts == smallts
+        assert all(ts.values())
 
     def test_floor_on_float(self, smallts):
         ts = smallts.floor(2)
@@ -591,7 +601,8 @@ class TestMaskUpdate:
 
     def test_mask_update_on_emptyts(self, smallts, emptyts, maskts):
         emptyts.mask_update(smallts, maskts)
-        assert emptyts == TimeSeries({CURRENT + 3 * ONEHOUR: 3})
+        expected_ts = TimeSeries({CURRENT + 3 * ONEHOUR: 3})
+        testing.assert_ts_equal(emptyts, expected_ts)
 
 
 class TestTimeSeriesSample:
@@ -605,18 +616,20 @@ class TestTimeSeriesSample:
             }
         }
         expected_ts = TimeSeries(expected_dict, default=smallts.default)
-        assert ts == expected_ts
+        testing.assert_ts_equal(expected_ts, ts)
 
     def test_simple_sample_with_start_being_string(self, smallts):
         start = '2019-01-01T09:00:00'
         ts = smallts.sample(HALFHOUR, start=start)
-        assert ts == TimeSeries({start: 9})
+        expected_ts = TimeSeries({start: 9})
+        testing.assert_ts_equal(expected_ts, ts)
 
     def test_sample_out_of_left_bound_with_no_default_permissive_shorten_interval(
             self, smallts):
         ts = smallts.sample(
             freq=HALFHOUR, start=CURRENT - ONEHOUR, end=CURRENT + ONEHOUR)
-        assert ts == TimeSeries({CURRENT: 0, CURRENT + HALFHOUR: 0})
+        expected_ts = TimeSeries({CURRENT: 0, CURRENT + HALFHOUR: 0})
+        testing.assert_ts_equal(expected_ts, ts)
 
     def test_sample_on_empty_return_empty_df(self, emptyts):
         assert emptyts.sample(freq=ONEHOUR).empty
