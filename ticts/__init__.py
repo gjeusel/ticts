@@ -21,5 +21,7 @@ else:
     __version__ = _dist.version
 
 if PANDAS_IS_INSTALLED:
-    from .extension import to_dataframe
+    from .extension import to_dataframe, sample_period
+
     TimeSeries.to_dataframe = to_dataframe
+    TimeSeries.sample_period = sample_period
