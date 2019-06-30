@@ -99,7 +99,6 @@ class TimeSeries(SortedDict):
         # SortedDict.__init__ does not use the __setitem__
         # Hence we got to parse datetime keys ourselves.
         super().__init__(_process_args(args, **kwargs))
-        self.me = self
 
     def __setitem__(self, key, value):
         if isinstance(key, slice):
