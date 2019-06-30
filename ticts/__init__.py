@@ -2,8 +2,7 @@ import os
 
 from pkg_resources import DistributionNotFound, get_distribution
 
-from .timeseries import TimeSeries
-from .utils import PANDAS_IS_INSTALLED
+from .timeseries import TimeSeries  # noqa: F401
 
 try:
     _dist = get_distribution("ticts")
@@ -19,7 +18,3 @@ except DistributionNotFound:
     __version__ = "Version not found."
 else:
     __version__ = _dist.version
-
-if PANDAS_IS_INSTALLED:
-    from .extension import to_dataframe
-    TimeSeries.to_dataframe = to_dataframe

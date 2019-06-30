@@ -7,6 +7,7 @@ from itertools import chain
 from sortedcontainers import SortedDict, SortedList
 
 from .utils import MAXTS, MINTS, timestamp_converter
+from .pandas_mixin import PandasMixin
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ def _get_keys_for_operation(ts1, ts2, *args):
     return [key for key in all_keys if key >= lower_bound]
 
 
-class TimeSeries(SortedDict):
+class TimeSeries(SortedDict, PandasMixin):
     """ TimeSeries object.
 
     Args:

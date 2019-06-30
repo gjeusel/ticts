@@ -3,7 +3,7 @@
 codecov
 flake8
 isort
-pandas >= 0.24.0
+pbr>=3.0
 
 pre-commit==1.15.2
 
