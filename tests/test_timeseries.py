@@ -2,6 +2,7 @@ from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from unittest import mock
 
+import pandas as pd
 import pytest
 
 from ticts import TimeSeries, testing
@@ -30,40 +31,40 @@ class TestTimeSeriesInit:
         assert ts.items() == expected.items()
         assert ts.default == 10
 
-    def test_with_dict_keys_being_strings_passed_as_kwargs(self):
-        dct = {
-            '2019-01-01': 1,
-            '2019-02-01': 2,
-            '2019-03-01': 3,
-        }
-        ts = TimeSeries(**dct, default=10)
-        expected = {
-            timestamp_converter(key): value
-            for key, value in dct.items()
-        }
-        assert ts.items() == expected.items()
-        assert ts.default == 10
-
     def test_with_data_as_tuple(self):
         mytuple = (
             (CURRENT, 0),
-            (CURRENT + ONEHOUR, 1),
+            ('2019-02-01', 1),
         )
         ts = TimeSeries(mytuple, default=10)
         assert ts[CURRENT] == 0
-        assert ts[CURRENT + ONEHOUR] == 1
+        assert ts['2019-02-01'] == 1
         assert len(ts) == 2
         assert ts.default == 10
 
-    def test_with_data_as_tuple_with_strings(self):
-        mytuple = (
-            ('2019-01-01', 0),
-            (timestamp_converter('2019-01-01'), 1),
-        )
-        ts = TimeSeries(*mytuple, default=10)
-        expected = {timestamp_converter(key): value for key, value in mytuple}
-        assert ts.items() == expected.items()
+    def test_with_data_as_pandas_series(self, smalldict):
+        serie = pd.Series(data=smalldict, name='SomeName')
+        ts = TimeSeries(serie)
+        assert ts.name == 'SomeName'
+        assert ts[CURRENT] == 0
+        assert len(ts) == len(serie)
+
+    def test_with_data_as_dataframe(self, smalldict):
+        df = pd.DataFrame(
+            data={'SomeName': list(smalldict.values())},
+            index=smalldict.keys())
+        ts = TimeSeries(df, default=10)
+        assert ts[CURRENT] == 0
+        assert ts.name == 'SomeName'
+        assert len(ts) == df.shape[0]
         assert ts.default == 10
+
+    def test_with_data_as_dataframe_raises_when_several_columns(self):
+        df = pd.DataFrame(columns=['Too', 'Many', 'Columns'])
+        with pytest.raises(Exception) as err:
+            TimeSeries(df)
+
+        assert "Can't convert a DataFrame with several columns" in str(err)
 
 
 class TestTimeSeriesSetItem:
