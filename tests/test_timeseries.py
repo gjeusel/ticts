@@ -2,6 +2,7 @@ from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from unittest import mock
 
+import pandas as pd
 import pytest
 
 from ticts import TimeSeries, testing
@@ -30,40 +31,40 @@ class TestTimeSeriesInit:
         assert ts.items() == expected.items()
         assert ts.default == 10
 
-    def test_with_dict_keys_being_strings_passed_as_kwargs(self):
-        dct = {
-            '2019-01-01': 1,
-            '2019-02-01': 2,
-            '2019-03-01': 3,
-        }
-        ts = TimeSeries(**dct, default=10)
-        expected = {
-            timestamp_converter(key): value
-            for key, value in dct.items()
-        }
-        assert ts.items() == expected.items()
-        assert ts.default == 10
-
     def test_with_data_as_tuple(self):
         mytuple = (
             (CURRENT, 0),
-            (CURRENT + ONEHOUR, 1),
+            ('2019-02-01', 1),
         )
         ts = TimeSeries(mytuple, default=10)
         assert ts[CURRENT] == 0
-        assert ts[CURRENT + ONEHOUR] == 1
+        assert ts['2019-02-01'] == 1
         assert len(ts) == 2
         assert ts.default == 10
 
-    def test_with_data_as_tuple_with_strings(self):
-        mytuple = (
-            ('2019-01-01', 0),
-            (timestamp_converter('2019-01-01'), 1),
-        )
-        ts = TimeSeries(*mytuple, default=10)
-        expected = {timestamp_converter(key): value for key, value in mytuple}
-        assert ts.items() == expected.items()
+    def test_with_data_as_pandas_series(self, smalldict):
+        serie = pd.Series(data=smalldict, name='SomeName')
+        ts = TimeSeries(serie)
+        assert ts.name == 'SomeName'
+        assert ts[CURRENT] == 0
+        assert len(ts) == len(serie)
+
+    def test_with_data_as_dataframe(self, smalldict):
+        df = pd.DataFrame(
+            data={'SomeName': list(smalldict.values())},
+            index=smalldict.keys())
+        ts = TimeSeries(df, default=10)
+        assert ts[CURRENT] == 0
+        assert ts.name == 'SomeName'
+        assert len(ts) == df.shape[0]
         assert ts.default == 10
+
+    def test_with_data_as_dataframe_raises_when_several_columns(self):
+        df = pd.DataFrame(columns=['Too', 'Many', 'Columns'])
+        with pytest.raises(Exception) as err:
+            TimeSeries(df)
+
+        assert "Can't convert a DataFrame with several columns" in str(err.value)
 
 
 class TestTimeSeriesSetItem:
@@ -166,7 +167,7 @@ class TestTimeSeriesGetitem:
         smallts.permissive = False
         with pytest.raises(KeyError) as err:
             smallts[CURRENT - ONEMIN]
-        assert 'default attribute is not set' in str(err)
+        assert 'default attribute is not set' in str(err.value)
 
     def test_getitem_using_str(self, smallts):
         smallts['2019-01-01'] == 0
@@ -184,8 +185,8 @@ class TestTimeSeriesGetitem:
         with pytest.raises(KeyError) as err:
             emptyts[CURRENT - ONEMIN, interpolate]
 
-        assert str(
-            "default attribute is not set and timeseries is empty") in str(err)
+        expected = "default attribute is not set and timeseries is empty"
+        assert expected in str(err.value)
 
     @pytest.mark.parametrize('interpolate', available_interpolate)
     def test_getitem_on_empty_when_no_default_return_None(
@@ -557,25 +558,25 @@ class TestMaskUpdate:
         with pytest.raises(TypeError) as err:
             smallts.mask_update("fakedct", maskts)
 
-        assert "other should be of type TimeSeries, got" in str(err)
+        assert "other should be of type TimeSeries, got" in str(err.value)
 
     def test_simple_mask_update_raises_if_not_boolean(self, smallts):
         with pytest.raises(TypeError) as err:
             smallts.mask_update(smallts, smallts)
 
-        assert "The values of the mask should all be boolean" in str(err)
+        assert "The values of the mask should all be boolean" in str(err.value)
 
     def test_mask_update_with_empty_no_default_other_raises(
             self, smallts, emptyts, maskts):
         with pytest.raises(ValueError) as err:
             smallts.mask_update(emptyts, maskts)
-        assert 'other is empty and has no default set' in str(err)
+        assert 'other is empty and has no default set' in str(err.value)
 
     def test_mask_update_with_empty_and_no_default_mask_raises(
             self, smallts, emptyts):
         with pytest.raises(ValueError) as err:
             smallts.mask_update(smallts, emptyts)
-        assert 'mask is empty and has no default set' in str(err)
+        assert 'mask is empty and has no default set' in str(err.value)
 
     def test_simple_mask_update(self, smallts, otherts, maskts):
         smallts_keys = smallts.keys()
