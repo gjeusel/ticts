@@ -2,10 +2,11 @@ import logging
 import operator
 from copy import deepcopy
 from datetime import timedelta
-from itertools import chain
 
+import pandas as pd
 from sortedcontainers import SortedDict, SortedList
 
+from .pandas_mixin import PandasMixin
 from .utils import MAXTS, MINTS, timestamp_converter
 
 logger = logging.getLogger(__name__)
@@ -26,14 +27,22 @@ def operation_factory(operation):
     return fn_operation
 
 
-def _process_args(mapping=(), **kwargs):
-    if isinstance(mapping, (list, tuple, set)) and len(mapping) == 1:
-        mapping = mapping[0]
-    if hasattr(mapping, 'items'):
-        mapping = mapping.items()
+def _process_args(data):
+    if data is None:
+        data = []
+    if isinstance(data, (list, tuple, set)) and len(data) == 1:
+        data = data[0]
 
-    return ((timestamp_converter(k), v)
-            for k, v in chain(mapping, kwargs.items()))
+    if isinstance(data, pd.DataFrame):
+        # We should already have check len(df.columns) == 1
+        data = data.to_dict()[data.columns[0]]
+    elif isinstance(data, pd.Series):
+        data = data.to_dict()
+
+    if hasattr(data, 'items'):
+        data = data.items()
+
+    return ((timestamp_converter(k), v) for k, v in data)
 
 
 def _get_keys_for_operation(ts1, ts2, *args):
@@ -52,7 +61,7 @@ def _get_keys_for_operation(ts1, ts2, *args):
     return [key for key in all_keys if key >= lower_bound]
 
 
-class TimeSeries(SortedDict):
+class TimeSeries(SortedDict, PandasMixin):
     """ TimeSeries object.
 
     Args:
@@ -86,19 +95,35 @@ class TimeSeries(SortedDict):
         """Return whether the TimeSeries is empty or not."""
         return len(self) == 0
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+            self,
+            data=None,
+            default=NO_DEFAULT,
+            name='value',
+            permissive=True,
+    ):
         """"""
-        self.default = kwargs.pop('default', NO_DEFAULT)
-        self.permissive = kwargs.pop('permissive', True)
+        self.default = default
+        self.name = name
+        self.permissive = permissive
 
-        # SortedDict use the first arg given and check if is a callable
-        # in case you want to give your custom sorting function.
-        if args and (args[0] is None or callable(args[0])):
-            args = args[1:]
+        if isinstance(data, pd.DataFrame):
+            if len(data.columns) != 1:
+                msg = ("Can't convert a DataFrame with several columns into "
+                       "one timeseries: {}.")
+                raise Exception(msg.format(data.columns))
+            self.name = data.columns[0]
+
+        elif isinstance(data, pd.Series):
+            self.name = data.name
 
         # SortedDict.__init__ does not use the __setitem__
         # Hence we got to parse datetime keys ourselves.
-        super().__init__(_process_args(args, **kwargs))
+        data = _process_args(data)
+
+        # SortedDict use the first arg given and check if is a callable
+        # in case you want to give your custom sorting function.
+        super().__init__(None, data)
 
     def __setitem__(self, key, value):
         if isinstance(key, slice):
@@ -295,13 +320,22 @@ class TimeSeries(SortedDict):
         return super().__eq__(other) and self.default == other.default
 
     def __copy__(self):
-        newone = super().__copy__()
-        newone.default = self.default
-        return newone
+        # Can't use super().__copy__() as it instanciate TimeSeries with
+        # data=None (first arg being a callable for the sorting of the
+        # SortedDict)
+        return TimeSeries(
+            data=self.items(),
+            default=self.default,
+            name=self.name,
+            permissive=self.permissive)
 
     def __deepcopy__(self, memo):
         newone = deepcopy(dict(self))
-        newone = TimeSeries(newone, default=self.default)
+        newone = TimeSeries(
+            newone,
+            default=self.default,
+            name=self.name,
+            permissive=self.permissive)
         return newone
 
     __add__ = operation_factory('__add__')
