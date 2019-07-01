@@ -64,7 +64,8 @@ class TestTimeSeriesInit:
         with pytest.raises(Exception) as err:
             TimeSeries(df)
 
-        assert "Can't convert a DataFrame with several columns" in str(err.value)
+        expected = "Can't convert a DataFrame with several columns"
+        assert expected in str(err.value)
 
 
 class TestTimeSeriesSetItem:
