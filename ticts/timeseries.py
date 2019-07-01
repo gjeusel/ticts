@@ -306,15 +306,27 @@ class TimeSeries(SortedDict):
 
     __add__ = operation_factory('__add__')
     __radd__ = operation_factory('__add__')
-
     __sub__ = operation_factory('__sub__')
+
     __mul__ = operation_factory('__mul__')
     __div__ = operation_factory('__div__')
+    __truediv__ = operation_factory('__truediv__')
+    __floordiv__ = operation_factory('__floordiv__')
+
+    __abs__ = operation_factory('__abs__')
+
     __lt__ = operation_factory('__lt__')
     __le__ = operation_factory('__le__')
     __gt__ = operation_factory('__gt__')
     __ge__ = operation_factory('__ge__')
     __eq__ = operation_factory('__eq__')
+
+    __or__ = operation_factory('__or__')
+    __xor__ = operation_factory('__xor__')
+    __and__ = operation_factory('__and__')
+
+    __inv__ = operation_factory('__inv__')
+    __not__ = operation_factory('__not__')
 
     def floor(self, other):
         """Floor your timeseries, applying a min key by key.
