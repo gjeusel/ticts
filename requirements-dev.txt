@@ -7,7 +7,6 @@ pbr>=3.0
 
 pre-commit==1.15.2
 
-pytest >= 3.3.0
+pytest == 5.0.0
 pytest-cov
-pytest-xdist
 yapf
