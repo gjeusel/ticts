@@ -1,3 +1,2 @@
-arrow
 pandas>=0.23.0
 sortedcontainers
