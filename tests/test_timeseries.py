@@ -419,7 +419,7 @@ class TestTimeSeriesOperators:
         expected_ts = TimeSeries(newdct)
         testing.assert_ts_equal(ts, expected_ts)
 
-    def test_simple_add_one_float(self, smallts, smalldict):
+    def test_simple_add_one_float(self, smallts):
         ts = smallts + 1000
         assert list(ts.values()) == list(range(1000, 1010))
 
@@ -483,6 +483,33 @@ class TestTimeSeriesOperators:
         assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 - 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 3 - 2000
         assert ts[CURRENT + 4 * ONEHOUR] == 4 - 3000
+
+    def test_sub_with_keys_differences_with_mixed_default_nodefault(
+            self, smallts_withdefault, otherts):
+        ts = smallts_withdefault - otherts
+        assert not ts._has_default
+        assert CURRENT + 1 * ONEHOUR not in ts.keys()
+        assert ts[CURRENT + 2 * ONEHOUR] == 2 - 1000
+        assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 - 2000
+        assert ts[CURRENT + 3 * ONEHOUR] == 3 - 2000
+        assert ts[CURRENT + 4 * ONEHOUR] == 4 - 3000
+
+    def test_simple_mul(self, smallts):
+        ts = smallts * smallts
+        assert list(ts.values()) == [val * val for val in smallts.values()]
+
+    def test_simple_mul_one_float(self, smallts):
+        ts = smallts * 1000.
+        assert list(ts.values()) == [val * 1000. for val in smallts.values()]
+
+    def test_simple_div(self, smallts):
+        smallts[CURRENT] = 1  # can't divide by zero
+        ts = smallts / smallts
+        assert list(ts.values()) == [val / val for val in smallts.values()]
+
+    def test_simple_div_one_float(self, smallts):
+        ts = smallts * 1000.
+        assert list(ts.values()) == [val * 1000. for val in smallts.values()]
 
     def test_simple_le(self, smallts):
         result = smallts >= 5
