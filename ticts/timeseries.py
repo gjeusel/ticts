@@ -1,30 +1,15 @@
 import logging
-import operator
 from copy import deepcopy
 from datetime import timedelta
 
 import pandas as pd
 from sortedcontainers import SortedDict, SortedList
 
+from .io import TictsIOMixin
 from .pandas_mixin import PandasMixin
-from .utils import MAXTS, MINTS, timestamp_converter
+from .utils import MAXTS, MINTS, NO_DEFAULT, operation_factory, timestamp_converter
 
 logger = logging.getLogger(__name__)
-
-
-class NoDefault():
-    def __repr__(self):
-        return 'No default'
-
-
-NO_DEFAULT = NoDefault()
-
-
-def operation_factory(operation):
-    def fn_operation(self, other):
-        return self._operate(other, getattr(operator, operation))
-
-    return fn_operation
 
 
 def _process_args(data):
@@ -61,7 +46,7 @@ def _get_keys_for_operation(ts1, ts2, *args):
     return [key for key in all_keys if key >= lower_bound]
 
 
-class TimeSeries(SortedDict, PandasMixin):
+class TimeSeries(SortedDict, PandasMixin, TictsIOMixin):
     """ TimeSeries object.
 
     Args:
@@ -103,7 +88,11 @@ class TimeSeries(SortedDict, PandasMixin):
             permissive=True,
     ):
         """"""
-        self.default = default
+        if hasattr(default, 'lower') and default.lower() == 'no_default':
+            self.default = NO_DEFAULT
+        else:
+            self.default = default
+
         self.name = name
         self.permissive = permissive
 
@@ -313,11 +302,20 @@ class TimeSeries(SortedDict, PandasMixin):
 
         return ts
 
-    def equals(self, other):
+    def equals(self, other, check_default=True, check_name=True):
         if not isinstance(other, self.__class__):
             raise TypeError("Can't compare TimeSeries with {}".format(
                 type(other)))
-        return super().__eq__(other) and self.default == other.default
+
+        is_equal = super().__eq__(other)
+
+        if check_default:
+            is_equal = is_equal and self.default == other.default
+
+        if check_name:
+            is_equal = is_equal and self.name == other.name
+
+        return is_equal
 
     def __copy__(self):
         # Can't use super().__copy__() as it instanciate TimeSeries with
@@ -343,7 +341,6 @@ class TimeSeries(SortedDict, PandasMixin):
     __sub__ = operation_factory('__sub__')
 
     __mul__ = operation_factory('__mul__')
-    __div__ = operation_factory('__div__')
     __truediv__ = operation_factory('__truediv__')
     __floordiv__ = operation_factory('__floordiv__')
 
