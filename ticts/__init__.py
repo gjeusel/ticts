@@ -1,5 +1,6 @@
 import os
 
+import pandas as pd
 from pkg_resources import DistributionNotFound, get_distribution
 
 from .timeseries import TimeSeries  # noqa: F401
@@ -18,3 +19,21 @@ except DistributionNotFound:
     __version__ = "Version not found."
 else:
     __version__ = _dist.version
+
+
+@pd.api.extensions.register_dataframe_accessor("to_ticts")
+class FromPandasDTtoTicTS(object):
+    def __init__(self, pandas_obj):
+        self.obj = pandas_obj
+
+    def __call__(self):
+        return TimeSeries(self.obj)
+
+
+@pd.api.extensions.register_series_accessor("to_ticts")
+class FromPandasSeriestoTicTS(object):
+    def __init__(self, pandas_obj):
+        self.obj = pandas_obj
+
+    def __call__(self):
+        return TimeSeries(self.obj)
