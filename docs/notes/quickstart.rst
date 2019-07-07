@@ -16,10 +16,11 @@ Instanciation
     ticts.TimeSeries({dt1: 1, '2019-01-02': 2})
 
     # from tuples
-    ticts.TimeSeries(
+    tuples = (
       (dt1, 1),
       ('2019-01-02', 2)
     )
+    ticts.TimeSeries(tuples)
 
 
 -------

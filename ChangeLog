@@ -1,6 +1,48 @@
 CHANGES
 =======
 
+* Add io to\_json / from\_json
+
+0.2.0
+-----
+
+* Linting
+* fix pytest version
+* update to\_dataframe method to use self.name
+* Add operations
+* Remove arrow dep
+* Rework init and copy methods to accept pd.DataFrame or pd.Series
+* Renames and pandas as mandatory dep
+* Clean up small garbage
+* Go for a no default object with repr
+* Add \_\_eq\_\_ as operation per key
+
+0.1.7
+-----
+
+* Add iterintervals method
+* Remove useless timestamp\_converter
+* use bisect
+
+0.1.6
+-----
+
+* Fix bug of set\_interval on emptyts
+* Add some more tests
+* only go for python 3.6 at the moment
+* Add other python version
+
+0.1.5
+-----
+
+* Add deploy as stage
+* Add ignore on /prof
+
+0.1.4
+-----
+
+* Make use of SortedDict methods for performances
+
 0.1.3
 -----
 

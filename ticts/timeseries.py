@@ -11,6 +11,8 @@ from .utils import MAXTS, MINTS, NO_DEFAULT, operation_factory, timestamp_conver
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_NAME = 'value'
+
 
 def _process_args(data):
     if data is None:
@@ -84,7 +86,7 @@ class TimeSeries(SortedDict, PandasMixin, TictsIOMixin):
             self,
             data=None,
             default=NO_DEFAULT,
-            name='value',
+            name=DEFAULT_NAME,
             permissive=True,
     ):
         """"""
@@ -501,8 +503,15 @@ class TimeSeries(SortedDict, PandasMixin, TictsIOMixin):
 
     def __repr__(self):
         header = "<TimeSeries>"
+
+        meta = []
         if self._has_default:
-            header = "{} (default={})".format(header, self.default)
+            meta.append('default={}'.format(self.default))
+        if self.name != DEFAULT_NAME:
+            meta.append("name='{}'".format(self.name))
+
+        if meta:
+            header = "{} ({})".format(header, ' | '.join(meta))
 
         def generate_content(keys):
             return '\n'.join(

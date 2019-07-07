@@ -1,13 +1,12 @@
 from datetime import timedelta
 
-import arrow
-
 from ticts import TimeSeries
+from ticts.utils import timestamp_converter
 
 onehour = timedelta(hours=1)
 onemin = timedelta(minutes=1)
-dt1 = arrow.get('2019-01-01')
-dt2 = arrow.get('2019-01-02')
+dt1 = timestamp_converter('2019-01-01')
+dt2 = timestamp_converter('2019-01-02')
 
 smalldct = {
     dt1 + onehour: 1,

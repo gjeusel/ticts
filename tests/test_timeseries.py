@@ -114,8 +114,10 @@ class TestTimeSeriesRepr:
         ts = TimeSeries(dct)
         assert repr(ts).count('\n') == 11
 
-    def test_repr_with_default(self, smallts_withdefault):
+    def test_repr_with_default_and_name(self, smallts_withdefault):
+        smallts_withdefault.name = 'SuperCool'
         assert 'default=' in repr(smallts_withdefault)
+        assert 'name=' in repr(smallts_withdefault)
 
 
 class TestTimeSeriesDefault:
@@ -707,24 +709,3 @@ class TestIterIntervals:
                     for i in range(3)]
         expected.append((CURRENT + 3 * ONEHOUR, end))
         assert sorted(result) == sorted(expected)
-
-
-class TestJSON:
-    def test_it_convert_to_json(self, smallts):
-        expected = {
-            'data': {key.isoformat(): value
-                     for key, value in smallts.items()},
-            'default': None,
-            'name': 'value'
-        }
-        assert expected == smallts.to_json()
-
-    def test_it_returns_timeseries_from_json(self, smallts):
-        __import__('pdb').set_trace()  # BREAKPOINT
-        expected = {
-            'data': {key.isoformat(): value
-                     for key, value in smallts.items()},
-            'default': None,
-            'name': 'value'
-        }
-        assert expected == smallts.to_json()

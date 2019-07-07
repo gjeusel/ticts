@@ -43,7 +43,7 @@ ipython_execlines = [content]
 templates_path = ["_templates"]
 
 if os.getenv("SPELLCHECK"):
-    extensions += ("sphinxcontrib.spelling",)
+    extensions += ("sphinxcontrib.spelling", )
     spelling_show_suggestions = True
     spelling_lang = "en_US"
 
@@ -73,7 +73,6 @@ extlinks = {
     # 'issue': ('https://github.com/gjeusel/ticts/issues
     # 'pr': ('https://github.com/gjeusel/ticts/pulls
 }
-
 
 # -- Options for HTML output ----------------------------------------------
 
