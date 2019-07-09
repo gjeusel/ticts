@@ -131,6 +131,20 @@ class TestTimeSeriesDefault:
         assert not ts._has_default
 
 
+class TestTimeSeriesEqual:
+    def test_equals(self, smallts_withdefault):
+        assert smallts_withdefault.equals(smallts_withdefault) is True
+
+    def test_not_equals(self, smallts, otherts):
+        assert smallts.equals(otherts) is False
+
+    def test_not_equals_due_to_default(self, smallts, smallts_withdefault):
+        assert smallts_withdefault.equals(smallts) is False
+
+    def test_equals_without_default(self, smallts, smallts_withdefault):
+        assert smallts_withdefault.equals(smallts, check_default=False) is True
+
+
 class TestTimeSeriesBoundProperties:
     def test_lower_bound(self, smallts):
         assert smallts.lower_bound == smallts.keys()[0]

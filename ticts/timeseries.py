@@ -332,7 +332,7 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
             raise TypeError("Can't compare TimeSeries with {}".format(
                 type(other)))
 
-        is_equal = super().__eq__(other)
+        is_equal = super(SortedDict, self).__eq__(other)
 
         if check_default:
             is_equal = is_equal and self.default == other.default
