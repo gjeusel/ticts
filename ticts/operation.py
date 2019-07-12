@@ -45,7 +45,7 @@ class TictsOperationMixin:
     def _operate_on_one_value(self, value, operator):
         sample_value = self.values()[0]
         try:
-            operator(value, sample_value)
+            operator(sample_value, value)
         except Exception:
             msg = "Can't apply {} on {} with {}"
             raise TypeError(

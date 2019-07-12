@@ -107,8 +107,8 @@ class TestTictsDiv:
         assert list(ts.values()) == [val / val for val in smallts.values()]
 
     def test_simple_div_one_float(self, smallts):
-        ts = smallts * 1000.
-        assert list(ts.values()) == [val * 1000. for val in smallts.values()]
+        ts = smallts / 1000.
+        assert list(ts.values()) == [val / 1000. for val in smallts.values()]
 
 
 class TestTictsBoolean:
