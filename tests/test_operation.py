@@ -213,8 +213,7 @@ class TestMaskUpdate:
         otherts_keys = otherts.index
         smallts.mask_update(otherts, maskts)
 
-        assert set(smallts.index) == set(smallts_keys).union(
-            set(otherts_keys))
+        assert set(smallts.index) == set(smallts_keys).union(set(otherts_keys))
 
         assert smallts[CURRENT + 2 * ONEHOUR] == 2
         assert smallts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2000
