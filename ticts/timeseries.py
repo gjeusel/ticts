@@ -1,6 +1,5 @@
 import logging
 from copy import deepcopy
-from datetime import timedelta
 
 import pandas as pd
 from sortedcontainers import SortedDict, SortedList
@@ -258,53 +257,6 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
             should_set_it = ts.empty or (ts[time] != value)
             if should_set_it:
                 ts[time] = value
-        return ts
-
-    def sample(self,
-               freq,
-               start=None,
-               end=None,
-               interpolate=_default_interpolate):
-        """Sample your timeseries into Evenly Spaced TimeSeries.
-
-        Args:
-            freq (timedelta): frequency to convert in.
-            start (datetime): left bound. Default to None, which result into
-                :meth:`~timeseries.TimeSeries.lower_bound`.
-            end (datetime): right bound. Default to None, which result into
-                :meth:`~timeseries.TimeSeries.upper_bound`.
-
-        Returns:
-            evenly-spaced timeseries.
-        """
-        if not isinstance(freq, timedelta):
-            msg = 'Freq should be of instance timedelta, got {}'
-            raise TypeError(msg.format(type(freq)))
-
-        ts = TimeSeries(default=self.default)
-
-        if self.empty:
-            return ts
-
-        if start:
-            start = timestamp_converter(start)
-            if not self._has_default:
-                start = max(start, self.lower_bound)
-
-        if end:
-            end = timestamp_converter(end)
-
-        if not start:
-            start = self.lower_bound
-
-        if not end:
-            # Assumption last interval is [end : end + freq[
-            end = self.upper_bound + freq
-
-        for i in range(0, int((end - start) / freq)):
-            dt = start + i * freq
-            ts[dt] = self[dt, interpolate]
-
         return ts
 
     def iterintervals(self, end=None):
