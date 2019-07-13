@@ -2,6 +2,7 @@ import logging
 from copy import deepcopy
 
 import pandas as pd
+import pytz
 from sortedcontainers import SortedDict, SortedList
 
 from .io import TictsIOMixin
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_NAME = 'value'
 
 
-def _process_args(data):
+def _process_args(data, tz):
     if data is None:
         data = []
     if isinstance(data, (list, tuple, set)) and len(data) == 1:
@@ -29,7 +30,7 @@ def _process_args(data):
     if hasattr(data, 'items'):
         data = data.items()
 
-    return ((timestamp_converter(k), v) for k, v in data)
+    return ((timestamp_converter(k, tz), v) for k, v in data)
 
 
 class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
@@ -56,6 +57,41 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
 
     def __iter__(self):
         return self.data.__iter__()
+
+    def __copy__(self):
+        return self.__class__(self)
+
+    def __deepcopy__(self, memo):
+        return TimeSeries(
+            data=deepcopy(self.data),
+            default=self.default,
+            name=self.name,
+            permissive=self.permissive)
+
+    def __repr__(self):
+        header = "<TimeSeries>"
+
+        meta = []
+        if self._has_default:
+            meta.append('default={}'.format(self.default))
+        if self.name != DEFAULT_NAME:
+            meta.append("name='{}'".format(self.name))
+
+        if meta:
+            header = "{} ({})".format(header, ' | '.join(meta))
+
+        def generate_content(keys):
+            return '\n'.join(
+                ["{}: {},".format(key.isoformat(), self[key]) for key in keys])
+
+        if len(self) < 10:
+            content = generate_content(self.index)
+        else:
+            content_head = generate_content(self.index[:5])
+            content_tail = generate_content(self.index[-5:])
+            content = "{}\n[...]\n{}".format(content_head, content_tail)
+
+        return "{}\n{}".format(header, content)
 
     def items(self):
         return self.data.items()
@@ -90,7 +126,8 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
                  data=None,
                  default=NO_DEFAULT,
                  name=DEFAULT_NAME,
-                 permissive=True):
+                 permissive=True,
+                 tz='UTC'):
         """"""
         if isinstance(data, self.__class__):
             for attr in ('data', *self._special_keys):
@@ -101,6 +138,11 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
             self.default = NO_DEFAULT
         else:
             self.default = default
+
+        try:
+            tz = pytz.timezone(tz)
+        except pytz.UnknownTimeZoneError:
+            raise ValueError('{} is not a valid timezone'.format(tz))
 
         self.name = name
         self.permissive = permissive
@@ -119,7 +161,7 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
         # Hence we got to parse datetime keys ourselves.
         # SortedDict use the first arg given and check if is a callable
         # in case you want to give your custom sorting function.
-        self.data = SortedDict(None, _process_args(data))
+        self.data = SortedDict(None, _process_args(data, tz))
 
     def __setitem__(self, key, value):
         if isinstance(key, slice):
@@ -127,7 +169,7 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
         if key in self._special_keys:
             super().__setitem__(key, value)
         else:
-            key = timestamp_converter(key)
+            key = timestamp_converter(key, self.tz)
             self.data[key] = value
 
     def __getitem__(self, key):
@@ -148,7 +190,7 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
         if isinstance(key, slice):
             return self.slice(key.start, key.stop)
 
-        key = timestamp_converter(key)
+        key = timestamp_converter(key, self.tz)
 
         basemsg = "Getting {} but default attribute is not set".format(key)
         if self.empty:
@@ -223,8 +265,8 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
         Returns:
             TimeSeries sliced
         """
-        start = timestamp_converter(start)
-        end = timestamp_converter(end)
+        start = timestamp_converter(start, self.tz)
+        end = timestamp_converter(end, self.tz)
 
         newts = TimeSeries(default=self.default)
 
@@ -256,8 +298,8 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
             msg = "At the moment, you have to set a default for set_interval"
             raise NotImplementedError(msg)
 
-        start = timestamp_converter(start)
-        end = timestamp_converter(end)
+        start = timestamp_converter(start, self.tz)
+        end = timestamp_converter(end, self.tz)
 
         keys = self.data.irange(start, end, inclusive=(True, False))
 
@@ -293,7 +335,7 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
         if not end:
             end = self.upper_bound
         else:
-            end = timestamp_converter(end)
+            end = timestamp_converter(end, self.tz)
             if end not in lst_keys:
                 lst_keys.add(end)
 
@@ -318,37 +360,21 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
 
         return is_equal
 
-    def __copy__(self):
-        return self.__class__(self)
+    @property
+    def tz(self):
+        if self.empty:
+            return pytz.UTC
+        return str(self.index[0].tz)
 
-    def __deepcopy__(self, memo):
-        return TimeSeries(
-            data=deepcopy(self.data),
-            default=self.default,
-            name=self.name,
-            permissive=self.permissive)
+    def tz_convert(self, tz):
+        try:
+            tz = pytz.timezone(tz)
+        except pytz.UnknownTimeZoneError:
+            raise ValueError('{} is not a valid timezone'.format(tz))
 
-    def __repr__(self):
-        header = "<TimeSeries>"
+        ts = deepcopy(self)
 
-        meta = []
-        if self._has_default:
-            meta.append('default={}'.format(self.default))
-        if self.name != DEFAULT_NAME:
-            meta.append("name='{}'".format(self.name))
+        for key in ts.index:
+            ts[key.tz_convert(tz)] = ts.data.pop(key)
 
-        if meta:
-            header = "{} ({})".format(header, ' | '.join(meta))
-
-        def generate_content(keys):
-            return '\n'.join(
-                ["{}: {},".format(key.isoformat(), self[key]) for key in keys])
-
-        if len(self) < 10:
-            content = generate_content(self.index)
-        else:
-            content_head = generate_content(self.index[:5])
-            content_tail = generate_content(self.index[-5:])
-            content = "{}\n[...]\n{}".format(content_head, content_tail)
-
-        return "{}\n{}".format(header, content)
+        return ts
