@@ -21,7 +21,7 @@ def _process_args(data):
         data = data[0]
 
     if isinstance(data, pd.DataFrame):
-        # We should already have check len(df.columns) == 1
+        # We should already have checked len(df.columns) == 1
         data = data.to_dict()[data.columns[0]]
     elif isinstance(data, pd.Series):
         data = data.to_dict()
@@ -32,7 +32,7 @@ def _process_args(data):
     return ((timestamp_converter(k), v) for k, v in data)
 
 
-class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
+class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
     """ TimeSeries object.
 
     Args:
@@ -43,19 +43,39 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
     """
     _default_interpolate = "previous"
 
+    _special_keys = ('default', 'name', 'permissive')
+
+    @property
+    def index(self):
+        # return list(self.data.keys())
+        return self.data.keys()
+
+    # Methods redirecting to SortedDict data attribute method
+    def __len__(self):
+        return len(self.data)
+
+    def __iter__(self):
+        return self.data.__iter__()
+
+    def items(self):
+        return self.data.items()
+
+    def values(self):
+        return self.data.values()
+
     @property
     def lower_bound(self):
         """Return the lower bound time index."""
         if self.empty:
             return MINTS
-        return self.keys()[0]
+        return self.index[0]
 
     @property
     def upper_bound(self):
         """Return the upper bound time index."""
         if self.empty:
             return MAXTS
-        return self.keys()[-1]
+        return self.index[-1]
 
     @property
     def _has_default(self):
@@ -66,14 +86,17 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
         """Return whether the TimeSeries is empty or not."""
         return len(self) == 0
 
-    def __init__(
-            self,
-            data=None,
-            default=NO_DEFAULT,
-            name=DEFAULT_NAME,
-            permissive=True,
-    ):
+    def __init__(self,
+                 data=None,
+                 default=NO_DEFAULT,
+                 name=DEFAULT_NAME,
+                 permissive=True):
         """"""
+        if isinstance(data, self.__class__):
+            for attr in ('data', *self._special_keys):
+                setattr(self, attr, getattr(data, attr))
+            return
+
         if hasattr(default, 'lower') and default.lower() == 'no_default':
             self.default = NO_DEFAULT
         else:
@@ -94,17 +117,18 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
 
         # SortedDict.__init__ does not use the __setitem__
         # Hence we got to parse datetime keys ourselves.
-        data = _process_args(data)
-
         # SortedDict use the first arg given and check if is a callable
         # in case you want to give your custom sorting function.
-        super().__init__(None, data)
+        self.data = SortedDict(None, _process_args(data))
 
     def __setitem__(self, key, value):
         if isinstance(key, slice):
             return self.set_interval(key.start, key.stop, value)
-        key = timestamp_converter(key)
-        super().__setitem__(key, value)
+        if key in self._special_keys:
+            super().__setitem__(key, value)
+        else:
+            key = timestamp_converter(key)
+            self.data[key] = value
 
     def __getitem__(self, key):
         """Get the value of the time series, even in-between measured values by interpolation.
@@ -148,8 +172,8 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
                     raise KeyError(msg.format(basemsg))
 
         # If the key is already defined:
-        if key in self.keys():
-            return super().__getitem__(key)
+        if key in self.index:
+            return self.data[key]
 
         if interpolate.lower() == "previous":
             fn = self._get_previous
@@ -163,25 +187,25 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
     def _get_previous(self, time):
         # In this case, bisect_left == bisect_right == bisect
         # And idx > 0 as we already handled other cases
-        previous_idx = self.bisect(time) - 1
-        time_idx = self.keys()[previous_idx]
-        return super().__getitem__(time_idx)
+        previous_idx = self.data.bisect(time) - 1
+        time_idx = self.index[previous_idx]
+        return self.data[time_idx]
 
     def _get_linear_interpolate(self, time):
         # TODO: put it into a 'get_previous_index' method
-        idx = self.bisect_left(time)
-        previous_time_idx = self.keys()[idx - 1]
+        idx = self.data.bisect_left(time)
+        previous_time_idx = self.index[idx - 1]
 
         # TODO: check on left bound case
 
         # out of right bound case:
         if idx == len(self):
-            return super().__getitem__(previous_time_idx)
+            return self.data[previous_time_idx]
 
-        next_time_idx = self.keys()[idx]
+        next_time_idx = self.index[idx]
 
-        previous_value = super().__getitem__(previous_time_idx)
-        next_value = super().__getitem__(next_time_idx)
+        previous_value = self.data[previous_time_idx]
+        next_value = self.data[next_time_idx]
 
         coeff = (time - previous_time_idx) / (
             next_time_idx - previous_time_idx)
@@ -204,10 +228,10 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
 
         newts = TimeSeries(default=self.default)
 
-        for key in self.irange(start, end, inclusive=(True, False)):
+        for key in self.data.irange(start, end, inclusive=(True, False)):
             newts[key] = self[key]
 
-        should_add_left_closure = (start not in newts.keys()
+        should_add_left_closure = (start not in newts.index
                                    and start >= self.lower_bound)
         if should_add_left_closure:
             newts[start] = self[start]  # is applying get_previous on self
@@ -235,12 +259,12 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
         start = timestamp_converter(start)
         end = timestamp_converter(end)
 
-        keys = self.irange(start, end, inclusive=(True, False))
+        keys = self.data.irange(start, end, inclusive=(True, False))
 
         last_value = self[end]
 
         for key in list(keys):
-            del self[key]
+            del self.data[key]
 
         self[start] = value
         self[end] = last_value
@@ -265,7 +289,7 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
         Args:
             end (datetime): right bound of last interval.
         """
-        lst_keys = SortedList(self.keys())
+        lst_keys = SortedList(self.index)
         if not end:
             end = self.upper_bound
         else:
@@ -281,10 +305,10 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
 
     def equals(self, other, check_default=True, check_name=True):
         if not isinstance(other, self.__class__):
-            raise TypeError("Can't compare TimeSeries with {}".format(
-                type(other)))
+            raise TypeError("Can't compare {} with {}".format(
+                self.__class__.__name__, other.__class__.__name__))
 
-        is_equal = super(SortedDict, self).__eq__(other)
+        is_equal = self.data == other.data
 
         if check_default:
             is_equal = is_equal and self.default == other.default
@@ -295,23 +319,14 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
         return is_equal
 
     def __copy__(self):
-        # Can't use super().__copy__() as it instanciate TimeSeries with
-        # data=None (first arg being a callable for the sorting of the
-        # SortedDict)
-        return TimeSeries(
-            data=self.items(),
-            default=self.default,
-            name=self.name,
-            permissive=self.permissive)
+        return self.__class__(self)
 
     def __deepcopy__(self, memo):
-        newone = deepcopy(dict(self))
-        newone = TimeSeries(
-            newone,
+        return TimeSeries(
+            data=deepcopy(self.data),
             default=self.default,
             name=self.name,
             permissive=self.permissive)
-        return newone
 
     def __repr__(self):
         header = "<TimeSeries>"
@@ -330,10 +345,10 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin, SortedDict):
                 ["{}: {},".format(key.isoformat(), self[key]) for key in keys])
 
         if len(self) < 10:
-            content = generate_content(self.keys())
+            content = generate_content(self.index)
         else:
-            content_head = generate_content(self.keys()[:5])
-            content_tail = generate_content(self.keys()[-5:])
+            content_head = generate_content(self.index[:5])
+            content_tail = generate_content(self.index[-5:])
             content = "{}\n[...]\n{}".format(content_head, content_tail)
 
         return "{}\n{}".format(header, content)

@@ -9,9 +9,9 @@ from .utils import NO_DEFAULT
 class TictsIOMixin:
     def serealize(self, date_format='epoch'):
         if date_format.lower() == 'epoch':
-            keys = [key.value for key in self.keys()]
+            keys = [key.value for key in self.index]
         elif date_format.lower() in ['iso', 'isoformat']:
-            keys = [key.isoformat() for key in self.keys()]
+            keys = [key.isoformat() for key in self.index]
         else:
             msg = "Date serealize with date_format equal to '{}' is not implemented"
             raise NotImplementedError(msg.format(date_format))

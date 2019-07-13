@@ -67,6 +67,11 @@ class TestTimeSeriesInit:
         expected = "Can't convert a DataFrame with several columns"
         assert expected in str(err.value)
 
+    def test_with_data_as_ticts_timeserie(self, smallts):
+        smallts.default = 1000
+        smallts.name = 'SomeName'
+        testing.assert_ts_equal(smallts, TimeSeries(smallts))
+
 
 class TestTimeSeriesSetItem:
     def test_simple_setitem(self, smallts):
@@ -75,7 +80,7 @@ class TestTimeSeriesSetItem:
 
     def test_consecutive_setitem(self, smallts):
         smallts[CURRENT] = 1000
-        first_time = deepcopy(smallts)
+        first_time = TimeSeries(smallts)
         smallts[CURRENT] = 1000
         testing.assert_ts_equal(first_time, smallts)
 
@@ -147,10 +152,10 @@ class TestTimeSeriesEqual:
 
 class TestTimeSeriesBoundProperties:
     def test_lower_bound(self, smallts):
-        assert smallts.lower_bound == smallts.keys()[0]
+        assert smallts.lower_bound == smallts.index[0]
 
     def test_upper_bound(self, smallts):
-        assert smallts.upper_bound == smallts.keys()[-1]
+        assert smallts.upper_bound == smallts.index[-1]
 
     def test_lower_bound_on_empty(self, emptyts):
         assert emptyts.lower_bound == MINTS
@@ -161,7 +166,7 @@ class TestTimeSeriesBoundProperties:
 
 def test_timeseries_compact(smallts):
     smallts[CURRENT + ONEMIN] = 0
-    assert (CURRENT + ONEMIN) not in smallts.compact().keys()
+    assert (CURRENT + ONEMIN) not in smallts.compact().index
 
 
 class TestTimeSeriesGetitem:
@@ -310,14 +315,14 @@ class TestTimeSeriesSetInterval:
         smallts_withdefault.set_interval(CURRENT + ONEHOUR,
                                          CURRENT + 9 * ONEHOUR, 1000)
         expected_keys = [CURRENT, CURRENT + ONEHOUR, CURRENT + 9 * ONEHOUR]
-        assert list(smallts_withdefault.keys()) == expected_keys
+        assert list(smallts_withdefault.index) == expected_keys
         assert smallts_withdefault[CURRENT + ONEHOUR] == 1000
         assert smallts_withdefault[CURRENT + 9 * ONEHOUR] == 9.
 
     def test_single_set_interval_start_on_first_key(self, smallts_withdefault):
         smallts_withdefault.set_interval(CURRENT, CURRENT + 9 * ONEHOUR, 1000)
         expected_keys = [CURRENT, CURRENT + 9 * ONEHOUR]
-        assert list(smallts_withdefault.keys()) == expected_keys
+        assert list(smallts_withdefault.index) == expected_keys
         assert smallts_withdefault[CURRENT] == 1000
         assert smallts_withdefault[CURRENT + 9 * ONEHOUR] == 9.
 
@@ -327,17 +332,17 @@ class TestTimeSeriesSetInterval:
     ])
     def test_single_set_interval_end_over_last_key_sets_to_last_value(
             self, smallts_withdefault, start, end):
-        last_key = smallts_withdefault.keys()[-1]
+        last_key = smallts_withdefault.index[-1]
         last_val = smallts_withdefault[last_key]
 
         smallts_withdefault.set_interval(start, end, 1000)
         keys_before_start = []
-        for key in smallts_withdefault.keys():
+        for key in smallts_withdefault.index:
             if key < start:
                 keys_before_start.append(key)
 
         expected_keys = [*keys_before_start, start, end]
-        assert list(smallts_withdefault.keys()) == expected_keys
+        assert list(smallts_withdefault.index) == expected_keys
         assert smallts_withdefault[end] == last_val
 
     def test_single_set_interval_when_start_higher_than_upper_bound(
@@ -346,7 +351,7 @@ class TestTimeSeriesSetInterval:
         end = CURRENT + 13 * ONEHOUR
         smallts_withdefault.set_interval(start, end, 1000)
 
-        assert CURRENT + 10 * ONEHOUR not in smallts_withdefault.keys()
+        assert CURRENT + 10 * ONEHOUR not in smallts_withdefault.index
         assert smallts_withdefault[CURRENT + 10 * ONEHOUR] == 9
 
         assert smallts_withdefault[start] == 1000
@@ -357,7 +362,7 @@ class TestTimeSeriesSetInterval:
         smallts_withdefault.set_interval(CURRENT - ONEHOUR,
                                          CURRENT + 9 * ONEHOUR, 1000)
         expected_keys = [CURRENT - ONEHOUR, CURRENT + 9 * ONEHOUR]
-        assert list(smallts_withdefault.keys()) == expected_keys
+        assert list(smallts_withdefault.index) == expected_keys
         assert smallts_withdefault[CURRENT - 1 * ONEHOUR] == 1000
 
     def test_single_set_interval_on_bounds_not_being_keys(
@@ -365,7 +370,7 @@ class TestTimeSeriesSetInterval:
         smallts_withdefault.set_interval(CURRENT + ONEMIN,
                                          CURRENT + 9 * ONEHOUR, 1000)
         expected_keys = [CURRENT, CURRENT + ONEMIN, CURRENT + 9 * ONEHOUR]
-        assert list(smallts_withdefault.keys()) == expected_keys
+        assert list(smallts_withdefault.index) == expected_keys
         assert smallts_withdefault[CURRENT + ONEMIN] == 1000
 
     def test_set_interval_on_empty(self, emptyts):
@@ -373,14 +378,14 @@ class TestTimeSeriesSetInterval:
         emptyts.set_interval(CURRENT, CURRENT + ONEHOUR, 1)
         assert emptyts[CURRENT] == 1
         assert emptyts[CURRENT + ONEHOUR] == 10
-        assert len(emptyts.keys()) == 2
+        assert len(emptyts.index) == 2
 
     def test_set_interval_on_empty_with_default(self, emptyts_withdefault):
         emptyts_withdefault.set_interval(CURRENT, CURRENT + ONEHOUR, 1)
         assert emptyts_withdefault[CURRENT] == 1
         assert emptyts_withdefault[CURRENT +
                                    ONEHOUR] == emptyts_withdefault.default
-        len(emptyts_withdefault.keys()) == 2
+        len(emptyts_withdefault.index) == 2
 
     @pytest.mark.parametrize('start, end', (
         (CURRENT, CURRENT + 9 * ONEHOUR),
@@ -407,7 +412,7 @@ class TestTimeSeriesSetInterval:
         emptyts.set_interval(CURRENT, CURRENT + 2 * ONEHOUR, 3)
         assert emptyts[CURRENT] == 3
         assert emptyts[CURRENT + 2 * ONEHOUR] == 10
-        assert list(emptyts.keys()) == [CURRENT, CURRENT + 2 * ONEHOUR]
+        assert list(emptyts.index) == [CURRENT, CURRENT + 2 * ONEHOUR]
 
     def test_set_interval_when_no_keys_to_delete_with_default(self, emptyts):
         emptyts.default = 1000
@@ -423,7 +428,7 @@ class TestTimeSeriesSetInterval:
             CURRENT + 3 * ONEHOUR: 3,
             CURRENT + 4 * ONEHOUR: 1000
         }
-        assert list(emptyts.keys()) == list(expected_dct.keys())
+        assert list(emptyts.index) == list(expected_dct.keys())
 
         for key in expected_dct:
             assert emptyts[key] == expected_dct[key]

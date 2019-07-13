@@ -7,7 +7,7 @@ def _get_keys_for_operation(ts1, ts2, *args):
         if not ts.__class__.__name__ == 'TimeSeries':
             raise TypeError("{} is not of type TimeSeries".format(ts))
 
-    all_keys = set.union(*[set(ts.keys()) for ts in all_ts])
+    all_keys = set.union(*[set(ts.index) for ts in all_ts])
 
     lower_bound = MINTS
     for ts in all_ts:
@@ -28,7 +28,7 @@ class TictsOperationMixin:
         if not isinstance(other, self.__class__):
             raise TypeError
 
-        all_keys = set(self.keys()).union(set(other.keys()))
+        all_keys = set(self.index).union(set(other.index))
 
         default = NO_DEFAULT
         if self._has_default and other._has_default:
@@ -47,16 +47,17 @@ class TictsOperationMixin:
         try:
             operator(sample_value, value)
         except Exception:
-            msg = "Can't apply {} on {} with {}"
+            msg = "Can't apply {} on {} with {}."
             raise TypeError(
-                msg.format(operator.__name__, type(sample_value), type(value)))
+                msg.format(operator.__name__, sample_value.__class__.__name__,
+                           value.__class__.__name__))
 
         default = None
         if self._has_default:
             default = operator(self.default, value)
 
         ts = self.__class__(default=default)
-        for key in self.keys():
+        for key in self.index:
             ts[key] = operator(self[key], value)
 
         return ts

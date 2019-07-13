@@ -6,7 +6,7 @@ from .utils import timestamp_converter
 
 class PandasMixin:
     def to_dataframe(self):
-        return pd.DataFrame(data={self.name: self.values()}, index=self.keys())
+        return pd.DataFrame(data={self.name: self.values()}, index=self.index)
 
     def sample(self,
                freq=None,
