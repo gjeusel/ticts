@@ -106,3 +106,13 @@ class TestTimeSeriesSample:
         ts = smallts.sample(freq)
         for start, end in ts.iterintervals():
             to_offset(end - start) == to_offset(freq)
+
+    def test_sample_on_non_fixed_frequency_with_values(self, smallts):
+        freq = to_offset('MS')
+        ts = smallts.sample(freq)
+        expected_index = [smallts.lower_bound, smallts.lower_bound + freq]
+        list(ts.keys()) == expected_index
+        expected_values = [
+            smallts[smallts.lower_bound], smallts[smallts.lower_bound + freq]
+        ]
+        list(ts.values()) == expected_values

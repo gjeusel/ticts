@@ -14,6 +14,18 @@ class PandasMixin:
                end=None,
                index=None,
                interpolate=None):
+        """Sample your timeseries into Evenly Spaced TimeSeries.
+
+        Args:
+            freq (timedelta): frequency to convert in.
+            start (datetime): left bound. Default to None, which result into
+                :meth:`~timeseries.TimeSeries.lower_bound`.
+            end (datetime): right bound. Default to None, which result into
+                :meth:`~timeseries.TimeSeries.upper_bound`.
+
+        Returns:
+            evenly-spaced timeseries.
+        """
 
         if freq is None and index is None:
             msg = ("You should either select one frequency OR an index for "
