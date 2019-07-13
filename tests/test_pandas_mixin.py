@@ -35,11 +35,9 @@ class TestTimeSeriesSample:
     def test_simple_sample_on_default(self, smallts):
         ts = smallts.sample(HALFHOUR)
         expected_dict = {
-            **smallts,
-            **{
-                key + HALFHOUR: smallts[key]
-                for key in list(smallts.keys())[:-1]
-            }
+            **smallts.data,
+            **{key + HALFHOUR: smallts[key]
+               for key in smallts.index[:-1]}
         }
         expected_ts = TimeSeries(expected_dict, default=smallts.default)
         testing.assert_ts_equal(expected_ts, ts)
@@ -51,7 +49,7 @@ class TestTimeSeriesSample:
             freq='3H',
             closed='left')
         ts = smallts.sample(index=index)
-        assert list(ts.keys()) == index.to_list()
+        assert list(ts.index) == index.to_list()
 
     def test_simple_sample_with_start_being_string(self, smallts):
         start = '2019-01-01T09:00:00'
@@ -76,14 +74,14 @@ class TestTimeSeriesSample:
         assert ts[CURRENT - ONEHOUR] == default
         assert ts[CURRENT - HALFHOUR] == default
         assert ts[CURRENT] == 0
-        assert CURRENT + HALFHOUR in ts.keys()
+        assert CURRENT + HALFHOUR in ts.index
 
     def test_sample_with_start_out_of_left_bounds(self, smallts):
         ts = smallts.sample(freq=HALFHOUR, start=CURRENT - ONEHOUR)
-        CURRENT - ONEHOUR not in ts.keys()
-        CURRENT - HALFHOUR not in ts.keys()
+        CURRENT - ONEHOUR not in ts.index
+        CURRENT - HALFHOUR not in ts.index
         assert ts[CURRENT] == 0
-        assert CURRENT + HALFHOUR in ts.keys()
+        assert CURRENT + HALFHOUR in ts.index
 
     @pytest.mark.parametrize('freq', [
         ONEMIN,
@@ -99,7 +97,7 @@ class TestTimeSeriesSample:
         ts = otherts.sample(freq=freq, start=start, end=end)
         freq = pd.Timedelta(freq)
         expected = [start + i * freq for i in range(int((end - start) / freq))]
-        assert list(ts.keys()) == expected
+        assert list(ts.index) == expected
 
     @pytest.mark.parametrize('freq', ['MS', 'M', 'B'])
     def test_sample_on_non_fixed_frequency(self, smallts, freq):
@@ -111,7 +109,7 @@ class TestTimeSeriesSample:
         freq = to_offset('MS')
         ts = smallts.sample(freq)
         expected_index = [smallts.lower_bound, smallts.lower_bound + freq]
-        list(ts.keys()) == expected_index
+        list(ts.index) == expected_index
         expected_values = [
             smallts[smallts.lower_bound], smallts[smallts.lower_bound + freq]
         ]

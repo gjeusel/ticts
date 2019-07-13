@@ -29,7 +29,7 @@ class TestTictsAdd:
     def test_add_with_keys_differences_without_default(self, smallts, otherts):
         ts = smallts + otherts
         assert not ts._has_default
-        assert CURRENT + 1 * ONEHOUR not in ts.keys()
+        assert CURRENT + 1 * ONEHOUR not in ts.index
         assert ts[CURRENT + 2 * ONEHOUR] == 2 + 1000
         assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 + 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 3 + 2000
@@ -39,7 +39,7 @@ class TestTictsAdd:
             self, smallts_withdefault, otherts):
         ts = smallts_withdefault + otherts
         assert not ts._has_default
-        assert CURRENT + 1 * ONEHOUR not in ts.keys()
+        assert CURRENT + 1 * ONEHOUR not in ts.index
         assert ts[CURRENT + 2 * ONEHOUR] == 2 + 1000
         assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 + 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 3 + 2000
@@ -73,7 +73,7 @@ class TestTictsSub:
 
     def test_sub_with_keys_differences_without_default(self, smallts, otherts):
         ts = smallts - otherts
-        assert CURRENT + 1 * ONEHOUR not in ts.keys()
+        assert CURRENT + 1 * ONEHOUR not in ts.index
         assert ts[CURRENT + 2 * ONEHOUR] == 2 - 1000
         assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 - 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 3 - 2000
@@ -83,7 +83,7 @@ class TestTictsSub:
             self, smallts_withdefault, otherts):
         ts = smallts_withdefault - otherts
         assert not ts._has_default
-        assert CURRENT + 1 * ONEHOUR not in ts.keys()
+        assert CURRENT + 1 * ONEHOUR not in ts.index
         assert ts[CURRENT + 2 * ONEHOUR] == 2 - 1000
         assert ts[CURRENT + 2 * ONEHOUR + HALFHOUR] == 2 - 2000
         assert ts[CURRENT + 3 * ONEHOUR] == 3 - 2000
@@ -209,11 +209,11 @@ class TestMaskUpdate:
         assert 'mask is empty and has no default set' in str(err.value)
 
     def test_simple_mask_update(self, smallts, otherts, maskts):
-        smallts_keys = smallts.keys()
-        otherts_keys = otherts.keys()
+        smallts_keys = smallts.index
+        otherts_keys = otherts.index
         smallts.mask_update(otherts, maskts)
 
-        assert set(smallts.keys()) == set(smallts_keys).union(
+        assert set(smallts.index) == set(smallts_keys).union(
             set(otherts_keys))
 
         assert smallts[CURRENT + 2 * ONEHOUR] == 2
