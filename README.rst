@@ -50,12 +50,12 @@ Usage
 
    assert ts + ts == 2 * ts
 
-   from datetime import timedelta
-   onemin = timedelta(minutes=1)
-   ts_evenly_spaced = ts.sample(freq=onemin)
+   ts_evenly_spaced = ts.sample(freq='1Min')
 
-   # if pandas installed:
-   df = ts.to_dataframe()
+   # From ticts to pandas, and the other way around
+   assert ts.equals(
+      ts.to_dataframe().to_ticts(),
+   )
 
 
 Installation
@@ -65,3 +65,11 @@ Installation
 
     pip install ticts
 
+
+Contributing
+------------
+
+.. code:: bash
+
+   pip install pre-commit
+   pre-commit install --hook-type pre-push
