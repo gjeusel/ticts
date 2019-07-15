@@ -3,14 +3,14 @@ import operator
 import pandas as pd
 
 
-def timestamp_converter(ts):
+def timestamp_converter(ts, tz='UTC'):
     try:  # in case ts is a timestamp (also called epoch)
         ts = pd.to_datetime(float(ts), unit='ns')
     except Exception:
         ts = pd.Timestamp(ts)
 
     if not ts.tz:
-        ts = ts.tz_localize('UTC')
+        ts = ts.tz_localize(tz)
     return ts
 
 

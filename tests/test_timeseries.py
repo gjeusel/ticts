@@ -450,3 +450,10 @@ class TestIterIntervals:
                     for i in range(3)]
         expected.append((CURRENT + 3 * ONEHOUR, end))
         assert sorted(result) == sorted(expected)
+
+
+class TestTzConvert:
+    def test_simple_tz_convert(self, smallts):
+        ts = smallts.tz_convert('CET')
+        assert ts.tz == 'CET'
+        assert smallts.tz == 'UTC'
