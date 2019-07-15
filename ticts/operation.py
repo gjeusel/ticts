@@ -1,4 +1,8 @@
+import logging
+
 from .utils import MINTS, NO_DEFAULT, operation_factory
+
+logger = logging.getLogger(__name__)
 
 
 def _get_keys_for_operation(ts1, ts2, *args):
@@ -32,7 +36,13 @@ class TictsOperationMixin:
 
         default = NO_DEFAULT
         if self._has_default and other._has_default:
-            default = operator(self.default, other.default)
+            try:
+                default = operator(self.default, other.default)
+            except ZeroDivisionError:
+                default = NO_DEFAULT
+                msg = ("The TimeSeries has 0. as default value."
+                       " Can't compute the resulting default.")
+                logger.warning(msg)
 
         all_keys = _get_keys_for_operation(self, other)
 
@@ -142,4 +152,5 @@ class TictsOperationMixin:
 
         for key in all_keys:
             if mask[key]:
+                self[key] = other[key]
                 self[key] = other[key]
