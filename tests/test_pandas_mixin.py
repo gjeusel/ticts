@@ -7,11 +7,20 @@ from ticts import TimeSeries, testing
 from .conftest import CURRENT, HALFHOUR, ONEHOUR, ONEMIN
 
 
-def test_to_dataframe(smallts):
-    smallts.name = 'SuperTS'
-    df = smallts.to_dataframe()
-    assert isinstance(df, pd.DataFrame)
-    assert df.columns.to_list() == ['SuperTS']
+class TestToDataFrame:
+    def test_to_dataframe(self, smallts):
+        smallts.name = 'SuperTS'
+        df = smallts.to_dataframe()
+        assert isinstance(df, pd.DataFrame)
+        assert df.columns.to_list() == ['SuperTS']
+        assert df.index.freq == '1H'
+
+    def test_it_works_on_unevenly_spaced(self, otherts):
+        otherts.name = 'SuperTS'
+        df = otherts.to_dataframe()
+        assert isinstance(df, pd.DataFrame)
+        assert df.columns.to_list() == ['SuperTS']
+        assert df.index.freq is None
 
 
 def test_from_df_to_ticst(smallts):

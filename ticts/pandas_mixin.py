@@ -1,12 +1,17 @@
 import pandas as pd
-from pandas.tseries.frequencies import to_offset
+from pandas.tseries.frequencies import infer_freq, to_offset
 
 from .utils import timestamp_converter
 
 
 class PandasMixin:
     def to_dataframe(self):
-        return pd.DataFrame(data={self.name: self.values()}, index=self.index)
+        df = pd.DataFrame(data={self.name: self.values()}, index=self.index)
+
+        # Try to infer freq if is evenly-spaced to get the df.index.freq
+        df.index.freq = infer_freq(df.index)
+
+        return df
 
     def sample(self,
                freq=None,
