@@ -90,7 +90,9 @@ class TestTimeSeriesSetItem:
         assert set_interval.call_count == 1
 
 
-class TestTimeSeriesCopy:
+class TestTictsMagicMixin:
+    # Copy / Deepcopy
+
     def test_copy(self, smallts):
         copied = copy(smallts)
         testing.assert_ts_equal(copied, smallts)
@@ -107,8 +109,8 @@ class TestTimeSeriesCopy:
         deepcopied = deepcopy(smallts_withdefault)
         testing.assert_ts_equal(deepcopied, smallts_withdefault)
 
+    # Repr
 
-class TestTimeSeriesRepr:
     def test_repr_on_otherts(self, otherts):
         assert repr(otherts).count('\n') == 3
 
@@ -123,6 +125,12 @@ class TestTimeSeriesRepr:
         smallts_withdefault.name = 'SuperCool'
         assert 'default=' in repr(smallts_withdefault)
         assert 'name=' in repr(smallts_withdefault)
+
+    # Delitem
+
+    def test_delitem(self, smallts):
+        del smallts[CURRENT]
+        assert CURRENT not in smallts.index
 
 
 class TestTimeSeriesDefault:

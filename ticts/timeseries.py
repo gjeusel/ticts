@@ -33,31 +33,7 @@ def _process_args(data, tz):
     return ((timestamp_converter(k, tz), v) for k, v in data)
 
 
-class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
-    """ TimeSeries object.
-
-    Args:
-        default: The default value of timeseries.
-        permissive (bool): Whether to allow accessing non-existing values or not.
-            If is True, getting non existing item returns None.
-            If is False, getting non existing item raises.
-    """
-    _default_interpolate = "previous"
-
-    _special_keys = ('default', 'name', 'permissive')
-
-    @property
-    def index(self):
-        # return list(self.data.keys())
-        return self.data.keys()
-
-    # Methods redirecting to SortedDict data attribute method
-    def __len__(self):
-        return len(self.data)
-
-    def __iter__(self):
-        return self.data.__iter__()
-
+class TictsMagicMixin:
     def __copy__(self):
         return self.__class__(self)
 
@@ -93,11 +69,40 @@ class TimeSeries(TictsOperationMixin, PandasMixin, TictsIOMixin):
 
         return "{}\n{}".format(header, content)
 
+    # Methods redirecting to SortedDict data attribute method
+    def __len__(self):
+        return len(self.data)
+
+    def __iter__(self):
+        return self.data.__iter__()
+
+    def __delitem__(self, key):
+        del self.data[key]
+
     def items(self):
         return self.data.items()
 
     def values(self):
         return self.data.values()
+
+
+class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
+                 TictsIOMixin):
+    """ TimeSeries object.
+
+    Args:
+        default: The default value of timeseries.
+        permissive (bool): Whether to allow accessing non-existing values or not.
+            If is True, getting non existing item returns None.
+            If is False, getting non existing item raises.
+    """
+    _default_interpolate = "previous"
+
+    _special_keys = ('default', 'name', 'permissive')
+
+    @property
+    def index(self):
+        return self.data.keys()
 
     @property
     def lower_bound(self):
