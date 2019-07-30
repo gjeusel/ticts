@@ -8,8 +8,10 @@ class PandasMixin:
     def to_dataframe(self):
         df = pd.DataFrame(data={self.name: self.values()}, index=self.index)
 
-        # Try to infer freq if is evenly-spaced to get the df.index.freq
-        df.index.freq = infer_freq(df.index)
+        # Need at least 3 dates to infer frequency
+        if len(df.index) >= 3:
+            # Try to infer freq if is evenly-spaced to get the df.index.freq
+            df.index.freq = infer_freq(df.index)
 
         return df
 
