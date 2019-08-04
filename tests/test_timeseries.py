@@ -465,3 +465,10 @@ class TestTzConvert:
         ts = smallts.tz_convert('CET')
         assert ts.tz == 'CET'
         assert smallts.tz == 'UTC'
+
+
+def test_chain_operations_keep_special_keys(smallts_withdefault):
+    ts = smallts_withdefault
+    otherts = ts.compact().sample('1T')
+    for attr_name in ts._special_keys:
+        assert getattr(ts, attr_name) == getattr(otherts, attr_name)
