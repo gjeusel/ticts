@@ -1,5 +1,6 @@
 -r docs/requirements.txt
 -r requirements.txt
+bokeh
 codecov
 flake8
 isort
