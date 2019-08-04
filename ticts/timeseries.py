@@ -39,10 +39,7 @@ class TictsMagicMixin:
 
     def __deepcopy__(self, memo):
         return TimeSeries(
-            data=deepcopy(self.data),
-            default=self.default,
-            name=self.name,
-            permissive=self.permissive)
+            data=deepcopy(self.data), **self._kwargs_special_keys)
 
     def __repr__(self):
         header = "<TimeSeries>"
@@ -123,6 +120,13 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
         return self.default != NO_DEFAULT
 
     @property
+    def _kwargs_special_keys(self):
+        kwargs = {}
+        for attr_name in self._special_keys:
+            kwargs[attr_name] = getattr(self, attr_name)
+        return kwargs
+
+    @property
     def empty(self):
         """Return whether the TimeSeries is empty or not."""
         return len(self) == 0
@@ -137,9 +141,15 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
         if isinstance(data, self.__class__):
             for attr in ('data', *self._special_keys):
                 setattr(self, attr, getattr(data, attr))
+
+            if default != NO_DEFAULT:
+                setattr(self, 'default', default)
+            if name != DEFAULT_NAME:
+                setattr(self, 'name', name)
             return
 
         if hasattr(default, 'lower') and default.lower() == 'no_default':
+            # 'no_default' as string is used at JSON serealization time
             self.default = NO_DEFAULT
         else:
             self.default = default
@@ -273,7 +283,7 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
         start = timestamp_converter(start, self.tz)
         end = timestamp_converter(end, self.tz)
 
-        newts = TimeSeries(default=self.default)
+        newts = TimeSeries(**self._kwargs_special_keys)
 
         for key in self.data.irange(start, end, inclusive=(True, False)):
             newts[key] = self[key]
@@ -323,7 +333,7 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
         Returns:
             TimeSeries
         """
-        ts = TimeSeries(default=self.default)
+        ts = TimeSeries(**self._kwargs_special_keys)
         for time, value in self.items():
             should_set_it = ts.empty or (ts[time] != value)
             if should_set_it:

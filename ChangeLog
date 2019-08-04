@@ -1,6 +1,47 @@
 CHANGES
 =======
 
+* solve it adding \_kwargs\_special\_keys property
+* Add check to try inferring the frequency
+* Try to infer the frequencies when to\_dataframe
+
+0.3.1
+-----
+
+* Be permissive on division with zero as default
+
+0.3.0
+-----
+
+* Update Readme
+* Create TictsMagicMixin for builtin nethods of TimeSeries
+* add it
+* Linting
+* Rework it, no longer inherit from SortedDict
+* add test on values
+* First implementation
+
+0.2.4
+-----
+
+* Small fix on div
+
+0.2.3
+-----
+
+* Precise which super for equals
+
+0.2.2
+-----
+
+* Render testing available at ticts package place
+
+0.2.1
+-----
+
+* Re-organize code
+* Add extensions to pandas objects 'to\_ticts'
+* Fix sphinx doc building
 * Add io to\_json / from\_json
 
 0.2.0

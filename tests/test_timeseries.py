@@ -72,6 +72,20 @@ class TestTimeSeriesInit:
         smallts.name = 'SomeName'
         testing.assert_ts_equal(smallts, TimeSeries(smallts))
 
+    def test_with_data_as_ticts_timeserie_and_default_given(self, smallts):
+        smallts.default = 1000
+        smallts.name = 'SomeName'
+        newts = TimeSeries(smallts, default=1.)
+        testing.assert_ts_equal(smallts, newts, check_default=False)
+        assert newts.default == 1.
+
+    def test_with_data_as_ticts_timeserie_and_name_given(self, smallts):
+        smallts.default = 1000
+        smallts.name = 'SomeName'
+        newts = TimeSeries(smallts, name='SomeOtherName')
+        testing.assert_ts_equal(smallts, newts, check_name=False)
+        assert newts.name == 'SomeOtherName'
+
 
 class TestTimeSeriesSetItem:
     def test_simple_setitem(self, smallts):
@@ -465,3 +479,10 @@ class TestTzConvert:
         ts = smallts.tz_convert('CET')
         assert ts.tz == 'CET'
         assert smallts.tz == 'UTC'
+
+
+def test_chain_operations_keep_special_keys(smallts_withdefault):
+    ts = smallts_withdefault
+    otherts = ts.compact().sample('1T')
+    for attr_name in ts._special_keys:
+        assert getattr(ts, attr_name) == getattr(otherts, attr_name)

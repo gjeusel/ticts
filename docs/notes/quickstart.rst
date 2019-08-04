@@ -15,13 +15,6 @@ Instanciation
     dt1 = datetime.datetime(2019, 1, 1)
     ticts.TimeSeries({dt1: 1, '2019-01-02': 2})
 
-    # from tuples
-    tuples = (
-      (dt1, 1),
-      ('2019-01-02', 2)
-    )
-    ticts.TimeSeries(tuples)
-
 
 -------
 Samples
@@ -42,7 +35,7 @@ An **interval** is closed left, open right: **[ , [**
 
 .. ipython:: python
 
-   smallts.keys()
+   smallts.index
 
    # Accessing value at key
    smallts[dt1 + onehour]
@@ -59,13 +52,13 @@ An **interval** is closed left, open right: **[ , [**
    # linear interpolation is available
    smallts[key, 'linear']
 
-   # Get is still the one from dict
-   smallts.get(key)
-
 
 ----------------------
 Set Item, Set Interval
 ----------------------
+
+Setting a default to your TimeSeries object is mandatory in order to set intervals.
+
 
 .. ipython:: python
 
