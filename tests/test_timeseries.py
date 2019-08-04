@@ -72,6 +72,20 @@ class TestTimeSeriesInit:
         smallts.name = 'SomeName'
         testing.assert_ts_equal(smallts, TimeSeries(smallts))
 
+    def test_with_data_as_ticts_timeserie_and_default_given(self, smallts):
+        smallts.default = 1000
+        smallts.name = 'SomeName'
+        newts = TimeSeries(smallts, default=1.)
+        testing.assert_ts_equal(smallts, newts, check_default=False)
+        assert newts.default == 1.
+
+    def test_with_data_as_ticts_timeserie_and_name_given(self, smallts):
+        smallts.default = 1000
+        smallts.name = 'SomeName'
+        newts = TimeSeries(smallts, name='SomeOtherName')
+        testing.assert_ts_equal(smallts, newts, check_name=False)
+        assert newts.name == 'SomeOtherName'
+
 
 class TestTimeSeriesSetItem:
     def test_simple_setitem(self, smallts):

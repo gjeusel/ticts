@@ -3,7 +3,7 @@
 Welcome to ticts's documentation!
 =================================
 
-A Python library for unevenly-spaced time series analysis.
+A Python library for unevenly-spaced timeseries analysis.
 
 .. image:: _static/img/example.png
    :scale: 40%

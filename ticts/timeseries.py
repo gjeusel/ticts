@@ -141,9 +141,15 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
         if isinstance(data, self.__class__):
             for attr in ('data', *self._special_keys):
                 setattr(self, attr, getattr(data, attr))
+
+            if default != NO_DEFAULT:
+                setattr(self, 'default', default)
+            if name != DEFAULT_NAME:
+                setattr(self, 'name', name)
             return
 
         if hasattr(default, 'lower') and default.lower() == 'no_default':
+            # 'no_default' as string is used at JSON serealization time
             self.default = NO_DEFAULT
         else:
             self.default = default
