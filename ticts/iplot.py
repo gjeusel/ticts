@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 try:
-    from bokeh.plotting import figure, show
+    from bokeh.plotting import figure, show as bokeh_show
     BOKEH_IMPORTED = True
 except ImportError:
     BOKEH_IMPORTED = False
@@ -15,14 +15,6 @@ except ImportError:
                  "Interactive Plot is not available. "
                  "Install it by using:\npip install bokeh")
     logger.debug(MSG_ERROR)
-
-
-def run_from_ipython():
-    try:
-        __IPYTHON__
-        return True
-    except NameError:
-        return False
 
 
 class TictsPlot:
@@ -46,14 +38,19 @@ class TictsPlot:
 
         return p
 
-    def iplot(self, title=None, dot_color="red", dot_size=6, **kwargs):
+    def iplot(self,
+              title=None,
+              show=False,
+              dot_color="red",
+              dot_size=6,
+              **kwargs):
         if not BOKEH_IMPORTED:
             raise ImportError(MSG_ERROR)
 
         fig = self._get_figure(
             title=title, dot_color=dot_color, dot_size=dot_size, **kwargs)
 
-        if run_from_ipython():
-            show(fig)
+        if show:
+            bokeh_show(fig)
 
         return fig
