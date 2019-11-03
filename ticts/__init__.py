@@ -3,7 +3,6 @@ import os
 import pandas as pd
 from pkg_resources import DistributionNotFound, get_distribution
 
-from . import testing  # noqa: F401
 from .timeseries import TimeSeries  # noqa: F401
 
 try:

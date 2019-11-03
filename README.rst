@@ -43,10 +43,12 @@ Usage
       '2019-01-01 00:10:00': 2,
       '2019-01-01 00:11:00': 3,
    })
-   assert ts['2019-01-01 00:05:00'] == 1
+
+   not_in_index = '2019-01-01 00:05:00'
+   assert ts[not_in_index] == 1  # step function, previous value
 
    ts['2019-01-01 00:04:00'] = 10
-   assert ts['2019-01-01 00:05:00'] == 10
+   assert ts[not_in_index] == 10
 
    assert ts + ts == 2 * ts
 

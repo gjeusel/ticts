@@ -38,7 +38,7 @@ class TictsMagicMixin:
         return self.__class__(self)
 
     def __deepcopy__(self, memo):
-        return TimeSeries(
+        return self.__class__(
             data=deepcopy(self.data), **self._kwargs_special_keys)
 
     def __repr__(self):
@@ -95,7 +95,7 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
     """
     _default_interpolate = "previous"
 
-    _special_keys = ('default', 'name', 'permissive')
+    _meta_keys = ('default', 'name', 'permissive')
 
     @property
     def index(self):
@@ -122,7 +122,7 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
     @property
     def _kwargs_special_keys(self):
         kwargs = {}
-        for attr_name in self._special_keys:
+        for attr_name in self._meta_keys:
             kwargs[attr_name] = getattr(self, attr_name)
         return kwargs
 
@@ -139,9 +139,10 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
                  tz='UTC'):
         """"""
         if isinstance(data, self.__class__):
-            for attr in ('data', *self._special_keys):
+            for attr in ('data', *self._meta_keys):
                 setattr(self, attr, getattr(data, attr))
 
+            # Only set 'default' and 'name' if is different from default
             if default != NO_DEFAULT:
                 setattr(self, 'default', default)
             if name != DEFAULT_NAME:
@@ -154,23 +155,24 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
         else:
             self.default = default
 
-        try:
-            tz = pytz.timezone(tz)
-        except pytz.UnknownTimeZoneError:
-            raise ValueError('{} is not a valid timezone'.format(tz))
-
         self.name = name
         self.permissive = permissive
 
+        # Overwrite the name if data is an instance of pd.DataFrame or pd.Series
         if isinstance(data, pd.DataFrame):
             if len(data.columns) != 1:
                 msg = ("Can't convert a DataFrame with several columns into "
                        "one timeseries: {}.")
-                raise Exception(msg.format(data.columns))
+                raise ValueError(msg.format(data.columns))
             self.name = data.columns[0]
 
         elif isinstance(data, pd.Series):
             self.name = data.name
+
+        try:
+            tz = pytz.timezone(tz)
+        except pytz.UnknownTimeZoneError:
+            raise ValueError('{} is not a valid timezone'.format(tz))
 
         # SortedDict.__init__ does not use the __setitem__
         # Hence we got to parse datetime keys ourselves.
@@ -181,7 +183,7 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
     def __setitem__(self, key, value):
         if isinstance(key, slice):
             return self.set_interval(key.start, key.stop, value)
-        if key in self._special_keys:
+        if key in self._meta_keys:
             super().__setitem__(key, value)
         else:
             key = timestamp_converter(key, self.tz)
