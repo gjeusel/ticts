@@ -37,7 +37,7 @@ class PandasMixin:
         if freq is None and index is None:
             msg = ("You should either select one frequency OR an index for "
                    "the sampling. Both are None.")
-            raise Exception(msg)
+            raise ValueError(msg)
 
         if not interpolate:
             interpolate = self._default_interpolate

@@ -481,8 +481,8 @@ class TestTzConvert:
         assert smallts.tz == 'UTC'
 
 
-def test_chain_operations_keep_special_keys(smallts_withdefault):
+def test_chain_operations_keep_meta_keys(smallts_withdefault):
     ts = smallts_withdefault
     otherts = ts.compact().sample('1T')
-    for attr_name in ts._special_keys:
+    for attr_name in ts._meta_keys:
         assert getattr(ts, attr_name) == getattr(otherts, attr_name)
