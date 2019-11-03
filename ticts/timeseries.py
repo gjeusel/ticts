@@ -6,6 +6,7 @@ import pytz
 from sortedcontainers import SortedDict, SortedList
 
 from .io import TictsIOMixin
+from .iplot import TictsPlot
 from .operation import TictsOperationMixin
 from .pandas_mixin import PandasMixin
 from .utils import MAXTS, MINTS, NO_DEFAULT, timestamp_converter
@@ -84,7 +85,7 @@ class TictsMagicMixin:
 
 
 class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
-                 TictsIOMixin):
+                 TictsIOMixin, TictsPlot):
     """ TimeSeries object.
 
     Args:
