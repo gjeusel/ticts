@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+* Add iplot method (#18)
+* Some renames and ValueError instead of Exception
+
+0.3.2
+-----
+
+* Make doc build works again
 * solve it adding \_kwargs\_special\_keys property
 * Add check to try inferring the frequency
 * Try to infer the frequencies when to\_dataframe

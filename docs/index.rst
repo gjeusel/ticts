@@ -8,7 +8,7 @@ A Python library for unevenly-spaced timeseries analysis.
 .. image:: _static/img/example.png
    :scale: 40%
 
-Notebooks to play around are available `here <https://mybinder.org/v2/gh/gjeusel/ticts/master?filepath=docs%2FTutorial.ipynb>`_.
+Tutorial notebook to play around is available `here <https://mybinder.org/v2/gh/gjeusel/ticts/master?filepath=docs%2FTutorial.ipynb>`_.
 
 Why ?
 -----
@@ -30,7 +30,7 @@ You have to keep in mind the following rules:
 
    - intervals are open left, closed right
    - timestamp are always localized, defaulting to UTC
-   - setting a default value to your timeseries might be important
+   - setting a default value to your timeseries might be mandatory for some operations.
 
 .. toctree::
    :maxdepth: 2
@@ -43,7 +43,9 @@ You have to keep in mind the following rules:
    :maxdepth: 2
    :caption: Package Reference
 
+   ticts.operation <src/operation>
    ticts.timeseries <src/timeseries>
+   ticts.pandas_mixin <src/pandas>
 
 
 .. toctree::
