@@ -28,7 +28,6 @@ class TestTimeSeriesInit:
             timestamp_converter(key): value
             for key, value in dct.items()
         }
-
         assert ts.items() == expected.items()
         assert ts.default == 10
 
