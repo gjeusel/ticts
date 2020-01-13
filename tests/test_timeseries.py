@@ -177,6 +177,12 @@ class TestTictsMagicMixin:
         assert og_ts[new_index] == new_value
         assert og_ts[other_new_index] == new_value
 
+        # Updating with dict
+        og_ts = deepcopy(smallts)
+        og_ts.update({new_index: new_value})
+
+        assert og_ts[new_index] == new_value
+
         # Updating with **kwargs
         og_ts = deepcopy(smallts)
         with pytest.raises(TypeError):
