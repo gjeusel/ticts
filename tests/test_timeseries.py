@@ -146,6 +146,48 @@ class TestTictsMagicMixin:
         del smallts[CURRENT]
         assert CURRENT not in smallts.index
 
+    # Update
+
+    def test_update(self, smallts):
+        og_ts = deepcopy(smallts)
+        last_index = smallts.index[-1]
+        new_index = last_index + pd.Timedelta('2 days')
+        new_value = 10
+
+        # Updating with TimeSeries
+        other = TimeSeries({new_index: new_value, last_index: new_value})
+        og_ts.update(other)
+
+        assert og_ts[new_index] == new_value
+        assert og_ts[last_index] == new_value
+
+        # Updating with tuple
+        og_ts = deepcopy(smallts)
+        other_tuple = tuple(other.items())
+        og_ts.update(other_tuple)
+
+        assert og_ts[new_index] == new_value
+
+        # Updating with *args
+        og_ts = deepcopy(smallts)
+        other_new_index = new_index + pd.Timedelta('2 hours')
+        other_new = TimeSeries({other_new_index: new_value})
+        og_ts.update([other, other_new])
+
+        assert og_ts[new_index] == new_value
+        assert og_ts[other_new_index] == new_value
+
+        # Updating with dict
+        og_ts = deepcopy(smallts)
+        og_ts.update({new_index: new_value})
+
+        assert og_ts[new_index] == new_value
+
+        # Updating with **kwargs
+        og_ts = deepcopy(smallts)
+        with pytest.raises(TypeError):
+            og_ts.update(**{new_index: new_value})
+
 
 class TestTimeSeriesDefault:
     @pytest.mark.parametrize('default', [None, 0, False])

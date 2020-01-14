@@ -83,6 +83,33 @@ class TictsMagicMixin:
     def values(self):
         return self.data.values()
 
+    def update(self, *args, **kwargs):
+        """Due to string-requirement of the keyword, kwargs are not supported.
+
+        They are present only to duplicate the parent's signature.
+        """
+        new_args = []
+
+        for arg in args:
+            if isinstance(arg, TimeSeries):
+                new_args.append(arg.items())
+
+            elif isinstance(arg, (list, tuple, set)):
+                new_arg = []
+
+                for a in arg:
+                    if isinstance(a, TimeSeries):
+                        new_arg.extend(list(a.items()))
+                    else:
+                        new_arg.append(a)
+
+                new_args.append(new_arg)
+
+            else:
+                new_args = args
+
+        self.data.update(*new_args, **kwargs)
+
 
 class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
                  TictsIOMixin, TictsPlot):
