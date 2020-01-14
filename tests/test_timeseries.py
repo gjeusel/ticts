@@ -140,6 +140,18 @@ class TestTictsMagicMixin:
         assert 'default=' in repr(smallts_withdefault)
         assert 'name=' in repr(smallts_withdefault)
 
+    # Accessors
+
+    def test_values(self, smallts):
+        values = smallts.values()
+        series_values = [v for k, v in smallts.items()]
+
+        assert len(values) == len(series_values)
+
+    def test_keys(self, smallts):
+        keys = smallts.keys()
+        assert len(keys) == len(smallts.index)
+
     # Delitem
 
     def test_delitem(self, smallts):
