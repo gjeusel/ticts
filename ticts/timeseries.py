@@ -390,7 +390,7 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
         for i, key in enumerate(lst_keys[:-1]):
             next_key = lst_keys[i + 1]
             if next_key > end:  # stop there
-                raise StopIteration
+                return
             yield key, next_key
 
     def equals(self, other, check_default=True, check_name=True):
