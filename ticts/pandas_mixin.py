@@ -60,11 +60,7 @@ class PandasMixin:
         else:
             start = self.lower_bound
 
-        if end:
-            end = timestamp_converter(end)
-        else:
-            end = self.upper_bound + freq
-
+        end = timestamp_converter(end) if end else self.upper_bound + freq
         dt = start
         while dt < end:
             ts[dt] = self[dt, interpolate]

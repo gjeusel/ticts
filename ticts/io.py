@@ -17,10 +17,10 @@ class TictsIOMixin:
             raise NotImplementedError(msg.format(date_format))
 
         return {
-            'data': {key: val
-                     for key, val in zip(keys, self.values())},
+            'data': dict(zip(keys, self.values())),
             'default': self.default
-            if self.default != NO_DEFAULT else 'no_default',
+            if self.default != NO_DEFAULT
+            else 'no_default',
             'name': self.name,
         }
 
@@ -46,7 +46,7 @@ class TictsIOMixin:
         if not hasattr(path, 'read'):
             path = Path(path)
             if not path.exists():
-                raise Exception("'{}' does not exists.".format(path))
+                raise Exception(f"'{path}' does not exists.")
             path = open(path, mode="r")
 
         content = json.load(path)

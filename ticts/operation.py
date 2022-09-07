@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 def _get_keys_for_operation(ts1, ts2, *args):
     all_ts = [ts1, ts2, *args]
     for ts in all_ts:
-        if not ts.__class__.__name__ == 'TimeSeries':
-            raise TypeError("{} is not of type TimeSeries".format(ts))
+        if ts.__class__.__name__ != 'TimeSeries':
+            raise TypeError(f"{ts} is not of type TimeSeries")
 
     all_keys = set.union(*[set(ts.index) for ts in all_ts])
 
@@ -62,10 +62,7 @@ class TictsOperationMixin:
                 msg.format(operator.__name__, sample_value.__class__.__name__,
                            value.__class__.__name__))
 
-        default = None
-        if self._has_default:
-            default = operator(self.default, value)
-
+        default = operator(self.default, value) if self._has_default else None
         ts = self.__class__(default=default)
         for key in self.index:
             ts[key] = operator(self[key], value)
@@ -132,7 +129,7 @@ class TictsOperationMixin:
             msg = 'other should be of type TimeSeries, got {}'
             raise TypeError(msg.format(type(other)))
 
-        if not all([isinstance(value, bool) for value in mask.values()]):
+        if not all(isinstance(value, bool) for value in mask.values()):
             msg = 'The values of the mask should all be boolean.'
             raise TypeError(msg)
 

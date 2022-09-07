@@ -13,10 +13,7 @@ ONEMIN = timedelta(minutes=1)
 
 @pytest.fixture
 def smalldict():
-    dct = dict()
-    for i in range(10):
-        dct[CURRENT + i * ONEHOUR] = i
-    return dct
+    return {CURRENT + i * ONEHOUR: i for i in range(10)}
 
 
 @pytest.fixture
