@@ -135,16 +135,12 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
     @property
     def lower_bound(self):
         """Return the lower bound time index."""
-        if self.empty:
-            return MINTS
-        return self.index[0]
+        return MINTS if self.empty else self.index[0]
 
     @property
     def upper_bound(self):
         """Return the upper bound time index."""
-        if self.empty:
-            return MAXTS
-        return self.index[-1]
+        return MAXTS if self.empty else self.index[-1]
 
     @property
     def _has_default(self):
@@ -152,10 +148,7 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
 
     @property
     def _kwargs_special_keys(self):
-        kwargs = {}
-        for attr_name in self._meta_keys:
-            kwargs[attr_name] = getattr(self, attr_name)
-        return kwargs
+        return {attr_name: getattr(self, attr_name) for attr_name in self._meta_keys}
 
     @property
     def empty(self):
@@ -203,7 +196,7 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
         try:
             tz = pytz.timezone(tz)
         except pytz.UnknownTimeZoneError:
-            raise ValueError('{} is not a valid timezone'.format(tz))
+            raise ValueError(f'{tz} is not a valid timezone')
 
         # SortedDict.__init__ does not use the __setitem__
         # Hence we got to parse datetime keys ourselves.
@@ -240,26 +233,22 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
 
         key = timestamp_converter(key, self.tz)
 
-        basemsg = "Getting {} but default attribute is not set".format(key)
+        basemsg = f"Getting {key} but default attribute is not set"
         if self.empty:
             if self._has_default:
                 return self.default
+            if self.permissive:
+                return
             else:
-                if self.permissive:
-                    return
-                else:
-                    raise KeyError(
-                        "{} and timeseries is empty".format(basemsg))
+                raise KeyError(f"{basemsg} and timeseries is empty")
 
         if key < self.lower_bound:
             if self._has_default:
                 return self.default
-            else:
-                if self.permissive:
-                    return
-                else:
-                    msg = "{}, can't deduce value before the oldest measurement"
-                    raise KeyError(msg.format(basemsg))
+            if self.permissive:
+                return
+            msg = "{}, can't deduce value before the oldest measurement"
+            raise KeyError(msg.format(basemsg))
 
         # If the key is already defined:
         if key in self.index:
@@ -270,7 +259,7 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
         elif interpolate.lower() == "linear":
             fn = self._get_linear_interpolate
         else:
-            raise ValueError("'{}' interpolation unknown.".format(interpolate))
+            raise ValueError(f"'{interpolate}' interpolation unknown.")
 
         return fn(key)
 
@@ -300,8 +289,7 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
         coeff = (time - previous_time_idx) / (
             next_time_idx - previous_time_idx)
 
-        value = previous_value + coeff * (next_value - previous_value)
-        return value
+        return previous_value + coeff * (next_value - previous_value)
 
     def slice(self, start, end):  # noqa A003
         """Slice your timeseries for give interval.
@@ -368,8 +356,7 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
         """
         ts = TimeSeries(**self._kwargs_special_keys)
         for time, value in self.items():
-            should_set_it = ts.empty or (ts[time] != value)
-            if should_set_it:
+            if should_set_it := ts.empty or (ts[time] != value):
                 ts[time] = value
         return ts
 
@@ -395,8 +382,10 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
 
     def equals(self, other, check_default=True, check_name=True):
         if not isinstance(other, self.__class__):
-            raise TypeError("Can't compare {} with {}".format(
-                self.__class__.__name__, other.__class__.__name__))
+            raise TypeError(
+                f"Can't compare {self.__class__.__name__} with {other.__class__.__name__}"
+            )
+
 
         is_equal = self.data == other.data
 
@@ -410,15 +399,13 @@ class TimeSeries(TictsMagicMixin, TictsOperationMixin, PandasMixin,
 
     @property
     def tz(self):
-        if self.empty:
-            return pytz.UTC
-        return str(self.index[0].tz)
+        return pytz.UTC if self.empty else str(self.index[0].tz)
 
     def tz_convert(self, tz):
         try:
             tz = pytz.timezone(tz)
         except pytz.UnknownTimeZoneError:
-            raise ValueError('{} is not a valid timezone'.format(tz))
+            raise ValueError(f'{tz} is not a valid timezone')
 
         ts = deepcopy(self)
 

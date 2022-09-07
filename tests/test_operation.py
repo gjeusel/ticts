@@ -56,7 +56,7 @@ class TestTictsAdd:
 class TestTictsSub:
     def test_simple_sub(self, smallts):
         ts = smallts - smallts
-        assert all([val == 0 for val in ts.values()])
+        assert all(val == 0 for val in ts.values())
 
     def test_simple_sub_one_float(self, smallts):
         ts = smallts - 1
@@ -120,23 +120,17 @@ class TestTictsDiv:
 class TestTictsBoolean:
     def test_simple_le(self, smallts):
         result = smallts >= 5
-        assert all([
-            not val for val in result[CURRENT:CURRENT + 4 * ONEHOUR].values()
-        ])
-        assert all([
-            val for val in result[CURRENT + 5 * ONEHOUR:CURRENT +
-                                  9 * ONEHOUR].values()
-        ])
+        assert not any(result[CURRENT:CURRENT + 4 * ONEHOUR].values())
+        assert all(
+            list(result[CURRENT + 5 * ONEHOUR : CURRENT + 9 * ONEHOUR].values())
+        )
 
     def test_simple_lt(self, smallts):
         result = smallts > 5
-        assert all([
-            not val for val in result[CURRENT:CURRENT + 5 * ONEHOUR].values()
-        ])
-        assert all([
-            val for val in result[CURRENT + 6 * ONEHOUR:CURRENT +
-                                  9 * ONEHOUR].values()
-        ])
+        assert not any(result[CURRENT:CURRENT + 5 * ONEHOUR].values())
+        assert all(
+            list(result[CURRENT + 6 * ONEHOUR : CURRENT + 9 * ONEHOUR].values())
+        )
 
     def test_simple_eq(self, smallts):
         ts = smallts == smallts
@@ -146,7 +140,7 @@ class TestTictsBoolean:
 class TestTictsFloorCeil:
     def test_floor_on_float(self, smallts):
         ts = smallts.floor(2)
-        assert all([value <= 2 for value in ts.values()])
+        assert all(value <= 2 for value in ts.values())
 
     def test_floor_on_ts(self, smallts_withdefault, otherts_withdefault):
         ts = smallts_withdefault.floor(otherts_withdefault)
@@ -158,7 +152,7 @@ class TestTictsFloorCeil:
 
     def test_ceil_on_float(self, smallts):
         ts = smallts.ceil(7)
-        assert all([value >= 7 for value in ts.values()])
+        assert all(value >= 7 for value in ts.values())
 
     def test_ceil_on_ts(self, smallts_withdefault, otherts_withdefault):
         ts = smallts_withdefault.ceil(otherts_withdefault)

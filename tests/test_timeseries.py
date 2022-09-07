@@ -129,9 +129,7 @@ class TestTictsMagicMixin:
         assert repr(otherts).count('\n') == 3
 
     def test_repr_on_large(self):
-        dct = dict()
-        for i in range(100):
-            dct[CURRENT + i * ONEHOUR] = i
+        dct = {CURRENT + i * ONEHOUR: i for i in range(100)}
         ts = TimeSeries(dct)
         assert repr(ts).count('\n') == 11
 
@@ -412,11 +410,7 @@ class TestTimeSeriesSetInterval:
         last_val = smallts_withdefault[last_key]
 
         smallts_withdefault.set_interval(start, end, 1000)
-        keys_before_start = []
-        for key in smallts_withdefault.index:
-            if key < start:
-                keys_before_start.append(key)
-
+        keys_before_start = [key for key in smallts_withdefault.index if key < start]
         expected_keys = [*keys_before_start, start, end]
         assert list(smallts_withdefault.index) == expected_keys
         assert smallts_withdefault[end] == last_val
@@ -513,7 +507,7 @@ class TestTimeSeriesSetInterval:
 class TestIterIntervals:
     def test_simple_iterintervals(self, smallts):
         iterator = smallts.iterintervals()
-        result = [(start, end) for start, end in iterator]
+        result = list(iterator)
         expected = [(CURRENT + i * ONEHOUR, CURRENT + (i + 1) * ONEHOUR)
                     for i in range(9)]
         assert sorted(result) == sorted(expected)
@@ -521,7 +515,7 @@ class TestIterIntervals:
     def test_iterintervals_with_end(self, smallts):
         end = CURRENT + 3 * ONEHOUR + HALFHOUR
         iterator = smallts.iterintervals(end)
-        result = [(start, end) for start, end in iterator]
+        result = list(iterator)
         expected = [(CURRENT + i * ONEHOUR, CURRENT + (i + 1) * ONEHOUR)
                     for i in range(3)]
         expected.append((CURRENT + 3 * ONEHOUR, end))
