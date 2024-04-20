@@ -1,4 +1,7 @@
-<h1> ticts </h1>
+<p align='center'>
+    <h1> ticts </h1>
+    <img src="docs/_static/img/logo.svg" />
+</p>
 
 <p align="center">
   <a href="https://github.com/gjeusel/ticts/actions?query=workflow%3ACI+branch%3Amain">
@@ -21,13 +24,13 @@
 <p align="center">
   <em>
     A Python library for unevenly-spaced time series analysis.
-    Greatly inspired by `traces <https://github.com/datascopeanalytics/traces>`_.
+    Greatly inspired by <a href="https://github.com/datascopeanalytics/traces">traces</a>
   </em>
 </p>
 
 <img src="docs/_static/img/example.png" alt="Example plot" />
 
-Get Started `Notebook <https://mybinder.org/v2/gh/gjeusel/ticts/master?filepath=docs%2FTutorial.ipynb>`_.
+Get Started [Notebook](https://mybinder.org/v2/gh/gjeusel/ticts/master?filepath=docs%2FTutorial.ipynb).
 
 ---
 
