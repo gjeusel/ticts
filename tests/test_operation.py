@@ -2,6 +2,7 @@ import pytest
 
 from tests.conftest import CURRENT, HALFHOUR, ONEHOUR
 from ticts import TimeSeries, testing
+from ticts.utils import NO_DEFAULT
 
 
 class TestTictsAdd:
@@ -52,6 +53,11 @@ class TestTictsAdd:
 
         for key in result:
             assert result[key] == 3 * smallts[key]
+
+    def test_add_on_no_default(self):
+        ts = TimeSeries({"2023-01-01": 1}, tz="CET")
+        result = ts - 0
+        assert result.default is NO_DEFAULT
 
 
 class TestTictsSub:
