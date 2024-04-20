@@ -41,6 +41,7 @@ clean:
 	rm -f `find . -type f -name '.*DS_Store'`
 	rm -rf .cache
 	rm -rf .*_cache
+	rm -rf .ropeproject
 	rm -rf htmlcov
 	rm -rf *.egg-info
 	rm -rf .eggs
