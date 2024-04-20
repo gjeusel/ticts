@@ -32,8 +32,11 @@ class TictsPlot:
 
         p = figure(**kwargs)
 
-        p.step(self.index, self.values(), line_width=2, line_dash="4 4", mode="after")
-        p.circle(self.index, self.values(), fill_color=dot_color, size=dot_size)
+        index = list(self.index)
+        values = list(self.values())
+
+        p.step(index, values, line_width=2, line_dash="4 4", mode="after")
+        p.scatter(index, values, fill_color=dot_color, size=dot_size)
 
         return p
 
