@@ -161,15 +161,33 @@ filterwarnings = [
   "ignore:distutils Version classes are deprecated:DeprecationWarning",
 ]
 
-[tool.coverage]
-run = { branch = true, omit = ["*tests/*"], context = "${CONTEXT}" }
-report = { precision = 2, exclude_lines = [
-  "pragma: no cover",
-  "raise NotImplementedError",
-  "raise NotImplemented",
-  "if TYPE_CHECKING:",
-  "@overload",
-], sort = "Miss" }
+[tool.coverage.run]
+source = ['ticts']
+omit = []
+branch = true
+context = '${CONTEXT}'
+
+[tool.coverage.report]
+precision = 2
+sort = "Miss"
+exclude_lines = [
+  'pragma: no cover',
+  'raise NotImplementedError',
+  'if TYPE_CHECKING:',
+  'if typing.TYPE_CHECKING:',
+  '@overload',
+  '@typing.overload',
+  '\(Protocol\):$',
+  'typing.assert_never',
+  'assert_never',
+]
+
+[tool.coverage.paths]
+source = [
+    'ticts/',
+    '/Users/runner/work/ticts/ticts/ticts/',
+    'D:\a\ticts\ticts\ticts',
+]
 
 [tool.mypy]
 python_version = "3.11"
