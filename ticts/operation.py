@@ -55,7 +55,7 @@ class TictsOperationMixin:
         return ts
 
     def _operate_on_scalar(self, value, operator):
-        sample_value = self.values()[0]
+        sample_value = self.values()[0] if not self.empty else self.default
         try:
             operator(sample_value, value)
         except Exception as err:

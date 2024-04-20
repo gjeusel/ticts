@@ -56,8 +56,17 @@ class TestTictsAdd:
 
     def test_add_on_no_default(self):
         ts = TimeSeries({"2023-01-01": 1}, tz="CET")
-        result = ts - 0
+        result = ts + 0
         assert result.default is NO_DEFAULT
+
+    def test_add_when_missing_values(self):
+        ts = TimeSeries({})
+        with pytest.raises(TypeError, match="Can't apply"):
+            ts + 0
+
+        ts = TimeSeries({}, default=1)
+        result = ts + 0
+        assert result.empty
 
 
 class TestTictsSub:
