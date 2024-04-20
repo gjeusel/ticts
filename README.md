@@ -34,27 +34,27 @@ Get Started [Notebook](https://mybinder.org/v2/gh/gjeusel/ticts/main?labpath=doc
 ## Usage
 
 ```python
-   from ticts import TimeSeries
-   ts = TimeSeries({
-      '2019-01-01': 1,
-      '2019-01-01 00:10:00': 2,
-      '2019-01-01 00:11:00': 3,
-   })
+from ticts import TimeSeries
+ts = TimeSeries({
+  '2019-01-01': 1,
+  '2019-01-01 00:10:00': 2,
+  '2019-01-01 00:11:00': 3,
+})
 
-   not_in_index = '2019-01-01 00:05:00'
-   assert ts[not_in_index] == 1  # step function, previous value
+not_in_index = '2019-01-01 00:05:00'
+assert ts[not_in_index] == 1  # step function, previous value
 
-   ts['2019-01-01 00:04:00'] = 10
-   assert ts[not_in_index] == 10
+ts['2019-01-01 00:04:00'] = 10
+assert ts[not_in_index] == 10
 
-   assert ts + ts == 2 * ts
+assert ts + ts == 2 * ts
 
-   ts_evenly_spaced = ts.sample(freq='1Min')
+ts_evenly_spaced = ts.sample(freq='1Min')
 
-   # From ticts to pandas, and the other way around
-   assert ts.equals(
-      ts.to_dataframe().to_ticts(),
-   )
+# From ticts to pandas, and the other way around
+assert ts.equals(
+  ts.to_dataframe().to_ticts(),
+)
 ```
 
 ## Installation
