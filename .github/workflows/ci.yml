@@ -42,7 +42,7 @@ jobs:
           extra_args: --all-files --verbose
 
   test:
-    name: pytest - py${{ matrix.python-version }} - ${{ matrix.os }}
+    name: pytest - py${{ matrix.python-version }} - pandas-${{ matrix.pandas-version }} - ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
