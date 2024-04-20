@@ -1,0 +1,20 @@
+{
+  "template": "https://github.com/gjeusel/soft-cookiecutter",
+  "commit": "1c6b18e809c1a11536249e47927434ac647a036b",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "github_username": "gjeusel",
+      "project_name": "ticts",
+      "project_slug": "ticts",
+      "project_short_description": "A Python library for unevenly-spaced time series analysis.",
+      "dockerfile": "no",
+      "open_source_license": "MIT license",
+      "_copy_without_render": [
+        "{{cookiecutter.project_name}}/.github/workflows/ci.yml"
+      ],
+      "_template": "https://github.com/gjeusel/soft-cookiecutter"
+    }
+  },
+  "directory": null
+}
