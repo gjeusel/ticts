@@ -27,7 +27,7 @@
 
 <img src="docs/img/example.png" alt="Example plot" />
 
-Get Started [Notebook](https://mybinder.org/v2/gh/gjeusel/ticts/master?filepath=docs%2FTutorial.ipynb).
+Get Started [Notebook](https://mybinder.org/v2/gh/gjeusel/ticts/main?labpath=docs%2FTutorial.ipynb).
 
 ---
 
