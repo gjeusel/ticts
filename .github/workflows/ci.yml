@@ -1,0 +1,223 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "**"
+  pull_request: {}
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: |
+            ${{ env.pythonLocation }}
+            .mypy_cache
+          key: lint-${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pip install -e .[all]
+
+      - name: List deps
+        run: pip freeze
+
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files --verbose
+
+  test:
+    name: pytest - py${{ matrix.python-version }} - pd${{ matrix.pandas-version }} - ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+        python-version: ["3.9", "3.10", "3.11"]
+        pandas-version: ["1.5", "2.0", "2.2"]
+
+    env:
+      PYTHON: ${{ matrix.python-version }}
+      OS: ${{ matrix.os }}
+      DEPS: yes
+
+    runs-on: ${{ matrix.os }}-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: |
+            ${{ env.pythonLocation }}
+          key: pytest-${{ runner.os }}-python-${{ matrix.python-version }}-pandas-${{ matrix.pandas-version }}-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          pip install --editable .[dev]
+          pip install pandas==${{ matrix.pandas-version }}
+
+      - name: List deps
+        run: pip freeze
+
+      - run: mkdir coverage
+      - name: Test
+        run: coverage run -m pytest -vv
+        env:
+          COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}-pd${{ matrix.pandas-version }}
+          CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}-pd${{ matrix.pandas-version }}
+
+      - name: Store coverage files
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}-${{ matrix.python-version }}-pd${{ matrix.pandas-version }}
+          path: coverage
+
+  coverage-combine:
+    name: coverage
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Get coverage files
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          pattern: coverage-*
+          path: coverage
+
+      - run: pip install coverage
+
+      - run: ls -la coverage
+      - run: coverage combine coverage
+      - run: coverage report
+      - run: coverage html --show-contexts --title "ticts coverage for ${{ github.sha }}"
+
+      - name: Store coverage html
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov
+
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: ${{ env.pythonLocation }}
+          key: docs-build-${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pip install -e .[doc]
+
+      - name: Build docs site
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        run: mkdocs build
+
+      - name: Publish docs site
+        if: "startsWith(github.ref, 'refs/tags/')"
+        run: >
+          mkdocs gh-deploy --force
+          --message "upt(doc): ${{ github.sha }}"
+          --remote-branch=gh-pages
+
+  publish-pypi:
+    name: publish pypi
+    needs: [lint, test, docs]
+    if: "success() && startsWith(github.ref, 'refs/tags/')"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: install
+        run: pip install -U twine build packaging
+
+      - name: build
+        run: python -m build
+
+      - run: ls -lh dist
+
+      - run: twine check dist/*
+
+      - name: Upload to Pypi
+        run: twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  deploy-docs:
+    name: deploy docs on github pages
+    needs: [lint, test, docs]
+    if: "success() && startsWith(github.ref, 'refs/tags/')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: ${{ env.pythonLocation }}
+          key: mkdocs-${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pip install -e .[doc]
+
+      - name: Build docs site
+        run: >
+          mkdocs gh-deploy
+          --message "upt(doc): ${{ github.sha }}"
+          --remote-branch=gh-pages

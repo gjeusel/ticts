@@ -1,6 +1,6 @@
 import logging
 
-from .utils import MINTS, NO_DEFAULT, operation_factory
+from ticts.utils import MINTS, NO_DEFAULT, operation_factory
 
 logger = logging.getLogger(__name__)
 
@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 def _get_keys_for_operation(ts1, ts2, *args):
     all_ts = [ts1, ts2, *args]
     for ts in all_ts:
-        if not ts.__class__.__name__ == 'TimeSeries':
-            raise TypeError("{} is not of type TimeSeries".format(ts))
+        if not ts.__class__.__name__ == "TimeSeries":
+            raise TypeError(f"{ts} is not of type TimeSeries")
 
     all_keys = set.union(*[set(ts.index) for ts in all_ts])
 
@@ -40,8 +40,10 @@ class TictsOperationMixin:
                 default = operator(self.default, other.default)
             except ZeroDivisionError:
                 default = NO_DEFAULT
-                msg = ("The TimeSeries has 0. as default value."
-                       " Can't compute the resulting default.")
+                msg = (
+                    "The TimeSeries has 0. as default value."
+                    " Can't compute the resulting default."
+                )
                 logger.warning(msg)
 
         all_keys = _get_keys_for_operation(self, other)
@@ -56,11 +58,15 @@ class TictsOperationMixin:
         sample_value = self.values()[0]
         try:
             operator(sample_value, value)
-        except Exception:
+        except Exception as err:
             msg = "Can't apply {} on {} with {}."
             raise TypeError(
-                msg.format(operator.__name__, sample_value.__class__.__name__,
-                           value.__class__.__name__))
+                msg.format(
+                    operator.__name__,
+                    sample_value.__class__.__name__,
+                    value.__class__.__name__,
+                )
+            ) from err
 
         default = None
         if self._has_default:
@@ -72,28 +78,28 @@ class TictsOperationMixin:
 
         return ts
 
-    __add__ = operation_factory('__add__')
-    __radd__ = operation_factory('__add__')
-    __sub__ = operation_factory('__sub__')
+    __add__ = operation_factory("__add__")
+    __radd__ = operation_factory("__add__")
+    __sub__ = operation_factory("__sub__")
 
-    __mul__ = operation_factory('__mul__')
-    __truediv__ = operation_factory('__truediv__')
-    __floordiv__ = operation_factory('__floordiv__')
+    __mul__ = operation_factory("__mul__")
+    __truediv__ = operation_factory("__truediv__")
+    __floordiv__ = operation_factory("__floordiv__")
 
-    __abs__ = operation_factory('__abs__')
+    __abs__ = operation_factory("__abs__")
 
-    __lt__ = operation_factory('__lt__')
-    __le__ = operation_factory('__le__')
-    __gt__ = operation_factory('__gt__')
-    __ge__ = operation_factory('__ge__')
-    __eq__ = operation_factory('__eq__')
+    __lt__ = operation_factory("__lt__")
+    __le__ = operation_factory("__le__")
+    __gt__ = operation_factory("__gt__")
+    __ge__ = operation_factory("__ge__")
+    __eq__ = operation_factory("__eq__")
 
-    __or__ = operation_factory('__or__')
-    __xor__ = operation_factory('__xor__')
-    __and__ = operation_factory('__and__')
+    __or__ = operation_factory("__or__")
+    __xor__ = operation_factory("__xor__")
+    __and__ = operation_factory("__and__")
 
-    __inv__ = operation_factory('__inv__')
-    __not__ = operation_factory('__not__')
+    __inv__ = operation_factory("__inv__")
+    __not__ = operation_factory("__not__")
 
     def floor(self, other):
         """Floor your timeseries, applying a min key by key.
@@ -129,11 +135,11 @@ class TictsOperationMixin:
         """
         # Type checks
         if not isinstance(other, self.__class__):
-            msg = 'other should be of type TimeSeries, got {}'
+            msg = "other should be of type TimeSeries, got {}"
             raise TypeError(msg.format(type(other)))
 
-        if not all([isinstance(value, bool) for value in mask.values()]):
-            msg = 'The values of the mask should all be boolean.'
+        if not all(isinstance(value, bool) for value in mask.values()):
+            msg = "The values of the mask should all be boolean."
             raise TypeError(msg)
 
         # Empty ts checks

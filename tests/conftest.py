@@ -5,7 +5,7 @@ import pytest
 from ticts import TimeSeries
 from ticts.utils import timestamp_converter
 
-CURRENT = timestamp_converter('2019-01-01')
+CURRENT = timestamp_converter("2019-01-01")
 ONEHOUR = timedelta(hours=1)
 HALFHOUR = timedelta(minutes=30)
 ONEMIN = timedelta(minutes=1)
@@ -13,7 +13,7 @@ ONEMIN = timedelta(minutes=1)
 
 @pytest.fixture
 def smalldict():
-    dct = dict()
+    dct = {}
     for i in range(10):
         dct[CURRENT + i * ONEHOUR] = i
     return dct

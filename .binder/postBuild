@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Used by Binder, executed at the end to render jupyter notebook
+# https://mybinder.readthedocs.io/en/latest/using/config_files.html#postbuild-run-code-after-installing-the-environment
+
+# Install missing deps
+pip install bokeh jupyter_bokeh pandas

@@ -1,39 +1,25 @@
-import os
+from importlib import metadata
+
+__version__ = metadata.version("ticts")
 
 import pandas as pd
-from pkg_resources import DistributionNotFound, get_distribution
 
-from .timeseries import TimeSeries  # noqa: F401
-
-try:
-    _dist = get_distribution("ticts")
-
-    # Normalize case for Windows systems
-    dist_loc = os.path.normcase(_dist.location)
-    here = os.path.normcase(__file__)
-
-    if not here.startswith(os.path.join(dist_loc, "ticts")):
-        # not installed, but there is another version that *is*
-        raise DistributionNotFound
-except DistributionNotFound:
-    __version__ = "Version not found."
-else:
-    __version__ = _dist.version
+from ticts.timeseries import TimeSeries
 
 
 @pd.api.extensions.register_dataframe_accessor("to_ticts")
-class FromPandasDTtoTicTS(object):
+class FromPandasDTtoTicTS:
     def __init__(self, pandas_obj):
         self.obj = pandas_obj
 
-    def __call__(self):
+    def __call__(self) -> TimeSeries:
         return TimeSeries(self.obj)
 
 
 @pd.api.extensions.register_series_accessor("to_ticts")
-class FromPandasSeriestoTicTS(object):
+class FromPandasSeriestoTicTS:
     def __init__(self, pandas_obj):
         self.obj = pandas_obj
 
-    def __call__(self):
+    def __call__(self) -> TimeSeries:
         return TimeSeries(self.obj)

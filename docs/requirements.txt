@@ -1,6 +1,0 @@
-ipython
-nbsphinx
-pygments
-sphinx-rtd-theme
-sphinx>=1.7.2
-sphinxcontrib-napoleon

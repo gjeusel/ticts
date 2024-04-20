@@ -1,7 +1,7 @@
 import pandas as pd
 from pandas.tseries.frequencies import infer_freq, to_offset
 
-from .utils import timestamp_converter
+from ticts.utils import timestamp_converter
 
 
 class PandasMixin:
@@ -15,12 +15,7 @@ class PandasMixin:
 
         return df
 
-    def sample(self,
-               freq=None,
-               start=None,
-               end=None,
-               index=None,
-               interpolate=None):
+    def sample(self, freq=None, start=None, end=None, index=None, interpolate=None):
         """Sample your timeseries into Evenly Spaced TimeSeries.
 
         Args:
@@ -35,8 +30,10 @@ class PandasMixin:
         """
 
         if freq is None and index is None:
-            msg = ("You should either select one frequency OR an index for "
-                   "the sampling. Both are None.")
+            msg = (
+                "You should either select one frequency OR an index for "
+                "the sampling. Both are None."
+            )
             raise ValueError(msg)
 
         if not interpolate:

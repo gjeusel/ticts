@@ -1,0 +1,214 @@
+[build-system]
+requires = ["hatchling>=1.5.0", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch]
+version = { source = "vcs" }
+
+[project]
+name = "ticts"
+description = "A Python library for unevenly-spaced time series analysis."
+authors = [{ name = "gjeusel", email = "guillaume.jeusel@gmail.com" }]
+readme = "README.md"
+classifiers = [
+  "Intended Audience :: Developers",
+  "Natural Language :: English",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Software Development",
+]
+requires-python = ">=3.9"
+dynamic = ["version"]
+
+dependencies = ["sortedcontainers", "pandas"]
+
+[project.optional-dependencies]
+dev = [
+  "bokeh",
+  #
+  # types
+  "types-pytz",
+  #
+  # testing libs:
+  "coverage==7.4.*",
+  "pytest==8.1.*",
+  "pytest-sugar==1.0.0",
+  "pytest-mock==3.14.*",
+  # "pytest-asyncio==0.23.*",
+  # "dirty-equals",
+  #
+  # code quality:
+  "pre-commit==3.7.*",
+  "ruff==0.4.*",
+  "mypy==1.9.*",
+]
+
+confort = [
+  # confort:
+  "pdbpp",
+  "ptpython",
+  "rich",
+  #
+  # project templating:
+  "cruft",
+  "cookiecutter",
+]
+
+doc = [
+  "mkdocs",
+  "mkdocstrings[python]",
+  "mkdocs-material",
+  "mkdocs-exclude",
+  "markdown-include",
+  "mdx-truly-sane-lists",
+]
+
+all = ["ticts[dev]", "ticts[doc]"]
+
+[tool.ruff]
+unsafe-fixes = true
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle
+  "F",   # pyflakes
+  "UP",  # pyupgrade
+  "I",   # isort
+  "S",   # flake8-bandit
+  "B",   # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "DTZ", # flake8-datetimez
+  "TID", # flake8-tidy-imports
+  "ICN", # flake8-import-conventions
+  "RUF", # Ruff-specific rules
+]
+
+ignore = [
+  "E501",   # pycodestyle line too long
+  "B010",   # flake8-bugbear - do not call setattr with a constant attribute value
+  "RUF012", # Ruff-specific rule - annotated with classvar
+  "ISC001", # Ruff formatter incompatible
+  "S608",   # flake8-bandit - Possible SQL injection vector through string-based query construction
+  "B008",   # flake8-bugbear - contradict FastAPI
+]
+
+[tool.ruff.lint.flake8-import-conventions.aliases]
+numpy = "np"
+pandas = "pd"
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = [
+  "pydantic.BaseModel",
+  "sqlalchemy.orm.DeclarativeBase",
+  "pandera.DataFrameModel",
+]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"                 # Disallow all relative imports.
+banned-module-level-imports = ["matplotlib"] # require a lazy import
+
+[tool.ruff.lint.isort]
+known-first-party = ["ticts", "tests"]
+
+[tool.ruff.lint.per-file-ignores]
+"ticts/**/__init__.py" = [
+  "F401", # pyflakes - unused-import
+]
+
+"ticts/__init__.py" = [
+  "E402", # Module level import not at top of file
+]
+
+"tests/**/*.*" = [
+  "A",
+  "ARG",
+  "B",
+  "BLE",
+  "C901",
+  "D",
+  "DTZ",
+  "EM",
+  "FBT",
+  "G",
+  "N",
+  "PGH",
+  "PIE",
+  "PLR",
+  "PLW",
+  "PTH",
+  "RSE",
+  "S",
+  "S101",
+  "SIM",
+  # "TCH",
+  "TRY",
+]
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+# filterwarnings = ["error"]  # make the warnings act like exceptions
+# addopts = "--cov --no-cov-on-fail"
+# timeout = 10  # maximum seconds duration for a unittest
+# asyncio_mode = "auto"  # when using pytest-asyncio
+markers = ["stress: stress tests (deselect with '-m \"not stress\"')"]
+filterwarnings = [
+  # "action:message:category:module:line"
+  #
+  # distutils:
+  "ignore:distutils Version classes are deprecated:DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ['ticts']
+omit = []
+branch = true
+context = '${CONTEXT}'
+
+[tool.coverage.report]
+precision = 2
+sort = "Miss"
+exclude_lines = [
+  'pragma: no cover',
+  'raise NotImplementedError',
+  'if TYPE_CHECKING:',
+  'if typing.TYPE_CHECKING:',
+  '@overload',
+  '@typing.overload',
+  '\(Protocol\):$',
+  'typing.assert_never',
+  'assert_never',
+]
+
+[tool.coverage.paths]
+source = [
+    'ticts/',
+    '/Users/runner/work/ticts/ticts/ticts/',
+    'D:\a\ticts\ticts\ticts',
+]
+
+[tool.mypy]
+python_version = "3.11"
+
+# Rules can be found at:
+# https://mypy.readthedocs.io/en/stable/config_file.html
+
+strict = true
+show_error_codes = true
+
+# permissives rules:
+implicit_reexport = true # no need to specify __all__ in modules
+# follow_imports = "silent"  # does not work when using dmypy https://github.com/python/mypy/issues/9475
+ignore_missing_imports = true # ignore missing stubs
+
+[[tool.mypy.overrides]]
+module = ["tests.*", "docs.*"]
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+disallow_incomplete_defs = false
+disallow_untyped_decorators = false
+
+[tool.cruft]
+skip = ["ticts/__init__.py", "tests"]
