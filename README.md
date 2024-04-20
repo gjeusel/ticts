@@ -1,7 +1,7 @@
-<p align='center'>
-    <h1> ticts </h1>
-    <img src="docs/_static/img/logo.svg" />
-</p>
+<h1 align="center">
+  <span>ticts</span>
+  <img src="docs/_static/img/logo.svg" alt="logo" width="60" height="20" />
+</h1>
 
 <p align="center">
   <a href="https://github.com/gjeusel/ticts/actions?query=workflow%3ACI+branch%3Amain">
@@ -15,9 +15,6 @@
   </a>
   <a href="https://gjeusel.github.io/ticts/">
     <img src="https://img.shields.io/badge/mkdocs-pages-brightgreen" alt="MKDocs github page">
-  </a>
-  <a href="https://github.com/pre-commit/pre-commit">
-      <img src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white" alt="pre-commit">
   </a>
 </p>
 
