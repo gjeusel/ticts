@@ -162,11 +162,7 @@ filterwarnings = [
 ]
 
 [tool.coverage]
-run = { source = [
-  "ticts",
-], branch = true, omit = [
-  "*tests/*",
-], context = "${CONTEXT}" }
+run = { branch = true, omit = ["*tests/*"], context = "${CONTEXT}" }
 report = { precision = 2, exclude_lines = [
   "pragma: no cover",
   "raise NotImplementedError",
