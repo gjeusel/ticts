@@ -1,0 +1,86 @@
+site_name: "ticts"
+site_description: "A Python library for unevenly-spaced time series analysis."
+site_url: "https://gjeusel.github.io/ticts/index.html"
+
+theme:
+  name: "material"
+  # logo: "img/logo.png"
+  # favicon: "img/favicon.ico"
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: "black"
+      accent: "teal"
+      toggle:
+        icon: material/lightbulb-outline
+        name: "Switch to dark mode"
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: "black"
+      accent: "teal"
+      toggle:
+        icon: material/lightbulb
+        name: "Switch to light mode"
+  features:
+    - content.tabs.link
+
+repo_name: "ticts"
+repo_url: "https://github.com/gjeusel/ticts"
+edit_uri: ""
+
+site_dir: docs-build # directory where the output HTML and other files are created
+
+# see https://www.mkdocs.org/user-guide/configuration/#preview-controls
+# creates links that point directly to the target file rather than the target directory
+use_directory_urls: false
+
+nav:
+  - Introduction: "index.md"
+  - reference.md
+  - changelog.md
+
+markdown_extensions:
+  - tables
+  - markdown_include.include:
+      base_path: docs
+  - toc:
+      permalink: true
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.extra
+  - mdx_truly_sane_lists
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets:
+      auto_append:
+        - docs/abbreviations.md
+
+plugins:
+  - search
+  - exclude:
+      glob:
+        - abbreviations.md # is not to be rendered
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            # https://mkdocstrings.github.io/python/usage/#globallocal-options
+            docstring_style: "google"
+            line_length: 60
+            heading_level: 2
+            merge_init_into_class: true
+            show_root_heading: true
+            docstring_section_style: "list"
+            show_signature_annotations: false
+            separate_signature: true
+
+extra_css:
+  - "css/custom.css"
+
+extra_javascript:
+  - "js/custom.js"

@@ -1,6 +1,6 @@
 <h1 align="center">
   <span>ticts</span>
-  <img src="docs/_static/img/logo.svg" alt="logo" width="60" height="20" />
+  <img src="docs/img/logo.svg" alt="logo" width="60" height="20" />
 </h1>
 
 <p align="center">
@@ -25,7 +25,7 @@
   </em>
 </p>
 
-<img src="docs/_static/img/example.png" alt="Example plot" />
+<img src="docs/img/example.png" alt="Example plot" />
 
 Get Started [Notebook](https://mybinder.org/v2/gh/gjeusel/ticts/master?filepath=docs%2FTutorial.ipynb).
 
