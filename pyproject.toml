@@ -30,8 +30,7 @@ dev = [
   "bokeh",
   #
   # types
-  # "types-pytz",
-  # "types-pyyaml",
+  "types-pytz",
   #
   # testing libs:
   "coverage==7.4.*",
@@ -45,7 +44,9 @@ dev = [
   "pre-commit==3.7.*",
   "ruff==0.4.*",
   "mypy==1.9.*",
-  #
+]
+
+confort = [
   # confort:
   "pdbpp",
   "ptpython",
