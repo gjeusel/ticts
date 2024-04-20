@@ -46,9 +46,43 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos, windows]
-        python-version: ["3.9", "3.10", "3.11"]
-        pandas-version: ["1.5", "2.0", "2.2"]
+        include:
+          - os: ubuntu
+            python-version: "3.9"
+            pandas-version: "1.5"
+          - os: ubuntu
+            python-version: "3.9"
+            pandas-version: "2.0"
+          - os: ubuntu
+            python-version: "3.9"
+            pandas-version: "2.2"
+
+          - os: ubuntu
+            python-version: "3.10"
+            pandas-version: "1.5"
+          - os: ubuntu
+            python-version: "3.10"
+            pandas-version: "2.0"
+          - os: ubuntu
+            python-version: "3.10"
+            pandas-version: "2.2"
+
+          - os: ubuntu
+            python-version: "3.11"
+            pandas-version: "1.5"
+          - os: ubuntu
+            python-version: "3.11"
+            pandas-version: "2.0"
+          - os: ubuntu
+            python-version: "3.11"
+            pandas-version: "2.2"
+
+          - os: windows
+            python-version: "3.11"
+            pandas-version: "2.2"
+          - os: macos
+            python-version: "3.11"
+            pandas-version: "2.2"
 
     env:
       PYTHON: ${{ matrix.python-version }}
