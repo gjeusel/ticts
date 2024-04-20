@@ -26,7 +26,7 @@ class TictsOperationMixin:
         if isinstance(other, self.__class__):
             return self._operate_on_ts(other, operator)
         else:
-            return self._operate_on_one_value(other, operator)
+            return self._operate_on_scalar(other, operator)
 
     def _operate_on_ts(self, other, operator):
         if not isinstance(other, self.__class__):
@@ -54,7 +54,7 @@ class TictsOperationMixin:
 
         return ts
 
-    def _operate_on_one_value(self, value, operator):
+    def _operate_on_scalar(self, value, operator):
         sample_value = self.values()[0]
         try:
             operator(sample_value, value)
@@ -68,7 +68,7 @@ class TictsOperationMixin:
                 )
             ) from err
 
-        default = None
+        default = NO_DEFAULT
         if self._has_default:
             default = operator(self.default, value)
 
