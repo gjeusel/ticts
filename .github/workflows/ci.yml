@@ -75,7 +75,7 @@ jobs:
           key: pytest-${{ runner.os }}-python-${{ matrix.python-version }}-pandas-${{ matrix.pandas-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install Dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: ${{ matrix.os == 'macos' }} || (steps.cache.outputs.cache-hit != 'true')
         run: |
           pip install --editable .[dev]
           pip install pandas==${{ matrix.pandas-version }}
