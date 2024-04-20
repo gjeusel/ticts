@@ -28,11 +28,7 @@ jobs:
           path: |
             ${{ env.pythonLocation }}
             .mypy_cache
-          key: >
-            lint
-            ${{ runner.os }}
-            ${{ env.pythonLocation }}
-            ${{ hashFiles('pyproject.toml') }}
+          key: lint-${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -52,6 +48,7 @@ jobs:
       matrix:
         os: [ubuntu, macos, windows]
         python-version: ["3.9", "3.10", "3.11"]
+        pandas-version: ["1.4", "1.5", "2.0", "2.1", "2.2"]
 
     env:
       PYTHON: ${{ matrix.python-version }}
@@ -75,15 +72,13 @@ jobs:
         with:
           path: |
             ${{ env.pythonLocation }}
-          key: >
-            pytest
-            ${{ runner.os }}
-            ${{ env.pythonLocation }}
-            ${{ hashFiles('pyproject.toml') }}
+          key: pytest-${{ runner.os }}-python-${{ matrix.python-version }}-pandas-${{ matrix.pandas-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install --editable .[dev]
+        run: |
+          pip install --editable .[dev]
+          pip install pandas==${{ matrix.pandas-version }}
 
       - name: List deps
         run: pip freeze
@@ -148,11 +143,7 @@ jobs:
         id: cache
         with:
           path: ${{ env.pythonLocation }}
-          key: >
-            docs-build
-            ${{ runner.os }}
-            ${{ env.pythonLocation }}
-            ${{ hashFiles('pyproject.toml') }}
+          key: docs-build-${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -218,11 +209,7 @@ jobs:
         id: cache
         with:
           path: ${{ env.pythonLocation }}
-          key: >
-            mkdocs
-            ${{ runner.os }}
-            ${{ env.pythonLocation }}
-            ${{ hashFiles('pyproject.toml') }}
+          key: mkdocs-${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
