@@ -67,6 +67,9 @@ doc = [
 
 all = ["ticts[dev]", "ticts[doc]"]
 
+[tool.ruff]
+unsafe-fixes = true
+
 [tool.ruff.lint]
 select = [
   "E",   # pycodestyle

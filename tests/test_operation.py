@@ -1,8 +1,7 @@
 import pytest
 
+from tests.conftest import CURRENT, HALFHOUR, ONEHOUR
 from ticts import TimeSeries, testing
-
-from .conftest import CURRENT, HALFHOUR, ONEHOUR
 
 
 class TestTictsAdd:
@@ -16,8 +15,9 @@ class TestTictsAdd:
         ts = smallts + 1000
         assert list(ts.values()) == list(range(1000, 1010))
 
-    def test_add_with_keys_differences_with_default(self, smallts_withdefault,
-                                                    otherts_withdefault):
+    def test_add_with_keys_differences_with_default(
+        self, smallts_withdefault, otherts_withdefault
+    ):
         ts = smallts_withdefault + otherts_withdefault
         assert ts.default == smallts_withdefault.default + otherts_withdefault.default
         assert ts[CURRENT + 1 * ONEHOUR] == 1 + otherts_withdefault.default
@@ -36,7 +36,8 @@ class TestTictsAdd:
         assert ts[CURRENT + 4 * ONEHOUR] == 4 + 3000
 
     def test_add_with_keys_differences_with_mixed_default_nodefault(
-            self, smallts_withdefault, otherts):
+        self, smallts_withdefault, otherts
+    ):
         ts = smallts_withdefault + otherts
         assert not ts._has_default
         assert CURRENT + 1 * ONEHOUR not in ts.index
@@ -56,14 +57,15 @@ class TestTictsAdd:
 class TestTictsSub:
     def test_simple_sub(self, smallts):
         ts = smallts - smallts
-        assert all([val == 0 for val in ts.values()])
+        assert all(val == 0 for val in ts.values())
 
     def test_simple_sub_one_float(self, smallts):
         ts = smallts - 1
         assert list(ts.values()) == list(range(-1, 9))
 
-    def test_sub_with_keys_differences_with_default(self, smallts_withdefault,
-                                                    otherts_withdefault):
+    def test_sub_with_keys_differences_with_default(
+        self, smallts_withdefault, otherts_withdefault
+    ):
         ts = smallts_withdefault - otherts_withdefault
         assert ts[CURRENT + 1 * ONEHOUR] == 1 - 900
         assert ts[CURRENT + 2 * ONEHOUR] == 2 - 1000
@@ -80,7 +82,8 @@ class TestTictsSub:
         assert ts[CURRENT + 4 * ONEHOUR] == 4 - 3000
 
     def test_sub_with_keys_differences_with_mixed_default_nodefault(
-            self, smallts_withdefault, otherts):
+        self, smallts_withdefault, otherts
+    ):
         ts = smallts_withdefault - otherts
         assert not ts._has_default
         assert CURRENT + 1 * ONEHOUR not in ts.index
@@ -96,8 +99,8 @@ class TestTictsMul:
         assert list(ts.values()) == [val * val for val in smallts.values()]
 
     def test_simple_mul_one_float(self, smallts):
-        ts = smallts * 1000.
-        assert list(ts.values()) == [val * 1000. for val in smallts.values()]
+        ts = smallts * 1000.0
+        assert list(ts.values()) == [val * 1000.0 for val in smallts.values()]
 
 
 class TestTictsDiv:
@@ -113,30 +116,26 @@ class TestTictsDiv:
         assert not ts._has_default
 
     def test_simple_div_one_float(self, smallts):
-        ts = smallts / 1000.
-        assert list(ts.values()) == [val / 1000. for val in smallts.values()]
+        ts = smallts / 1000.0
+        assert list(ts.values()) == [val / 1000.0 for val in smallts.values()]
 
 
 class TestTictsBoolean:
     def test_simple_le(self, smallts):
         result = smallts >= 5
-        assert all([
-            not val for val in result[CURRENT:CURRENT + 4 * ONEHOUR].values()
-        ])
-        assert all([
-            val for val in result[CURRENT + 5 * ONEHOUR:CURRENT +
-                                  9 * ONEHOUR].values()
-        ])
+        assert all(not val for val in result[CURRENT : CURRENT + 4 * ONEHOUR].values())
+        assert all(
+            val
+            for val in result[CURRENT + 5 * ONEHOUR : CURRENT + 9 * ONEHOUR].values()
+        )
 
     def test_simple_lt(self, smallts):
         result = smallts > 5
-        assert all([
-            not val for val in result[CURRENT:CURRENT + 5 * ONEHOUR].values()
-        ])
-        assert all([
-            val for val in result[CURRENT + 6 * ONEHOUR:CURRENT +
-                                  9 * ONEHOUR].values()
-        ])
+        assert all(not val for val in result[CURRENT : CURRENT + 5 * ONEHOUR].values())
+        assert all(
+            val
+            for val in result[CURRENT + 6 * ONEHOUR : CURRENT + 9 * ONEHOUR].values()
+        )
 
     def test_simple_eq(self, smallts):
         ts = smallts == smallts
@@ -146,7 +145,7 @@ class TestTictsBoolean:
 class TestTictsFloorCeil:
     def test_floor_on_float(self, smallts):
         ts = smallts.floor(2)
-        assert all([value <= 2 for value in ts.values()])
+        assert all(value <= 2 for value in ts.values())
 
     def test_floor_on_ts(self, smallts_withdefault, otherts_withdefault):
         ts = smallts_withdefault.floor(otherts_withdefault)
@@ -158,7 +157,7 @@ class TestTictsFloorCeil:
 
     def test_ceil_on_float(self, smallts):
         ts = smallts.ceil(7)
-        assert all([value >= 7 for value in ts.values()])
+        assert all(value >= 7 for value in ts.values())
 
     def test_ceil_on_ts(self, smallts_withdefault, otherts_withdefault):
         ts = smallts_withdefault.ceil(otherts_withdefault)
@@ -168,8 +167,9 @@ class TestTictsFloorCeil:
         assert ts[CURRENT + 3 * ONEHOUR] == 2000
         assert ts[CURRENT + 4 * ONEHOUR] == 3000
 
-    def test_ceil_on_ts_check_changing_default(self, smallts_withdefault,
-                                               otherts_withdefault):
+    def test_ceil_on_ts_check_changing_default(
+        self, smallts_withdefault, otherts_withdefault
+    ):
         otherts_withdefault.default = -10
         ts = smallts_withdefault.ceil(otherts_withdefault)
 
@@ -203,16 +203,16 @@ class TestMaskUpdate:
         assert "The values of the mask should all be boolean" in str(err.value)
 
     def test_mask_update_with_empty_no_default_other_raises(
-            self, smallts, emptyts, maskts):
+        self, smallts, emptyts, maskts
+    ):
         with pytest.raises(ValueError) as err:
             smallts.mask_update(emptyts, maskts)
-        assert 'other is empty and has no default set' in str(err.value)
+        assert "other is empty and has no default set" in str(err.value)
 
-    def test_mask_update_with_empty_and_no_default_mask_raises(
-            self, smallts, emptyts):
+    def test_mask_update_with_empty_and_no_default_mask_raises(self, smallts, emptyts):
         with pytest.raises(ValueError) as err:
             smallts.mask_update(smallts, emptyts)
-        assert 'mask is empty and has no default set' in str(err.value)
+        assert "mask is empty and has no default set" in str(err.value)
 
     def test_simple_mask_update(self, smallts, otherts, maskts):
         smallts_keys = smallts.index
@@ -227,12 +227,13 @@ class TestMaskUpdate:
         assert smallts[CURRENT + 4 * ONEHOUR] == 4
 
     def test_mask_update_with_other_being_empty_with_default(
-            self, smallts, emptyts, maskts):
-        emptyts.default = -10.
+        self, smallts, emptyts, maskts
+    ):
+        emptyts.default = -10.0
         smallts.mask_update(emptyts, maskts)
 
         assert smallts[CURRENT + 2 * ONEHOUR] == 2
-        assert smallts[CURRENT + 3 * ONEHOUR] == -10.
+        assert smallts[CURRENT + 3 * ONEHOUR] == -10.0
         assert smallts[CURRENT + 4 * ONEHOUR] == 4
 
     def test_mask_update_on_emptyts(self, smallts, emptyts, maskts):

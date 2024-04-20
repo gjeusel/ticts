@@ -1,4 +1,4 @@
-from .timeseries import TimeSeries
+from ticts.timeseries import TimeSeries
 
 
 def assert_ts_equal(ts1, ts2, check_default=True, check_name=True):
@@ -7,4 +7,4 @@ def assert_ts_equal(ts1, ts2, check_default=True, check_name=True):
             msg = "{} is not of type TimeSeries"
             raise TypeError(msg.format(type(ts)))
 
-    assert ts1.equals(ts2, check_default, check_name)
+    assert ts1.equals(ts2, check_default, check_name)  # noqa: S101

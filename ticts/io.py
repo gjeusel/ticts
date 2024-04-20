@@ -3,39 +3,52 @@ from pathlib import Path
 
 import pandas as pd
 
-from .utils import NO_DEFAULT
+from ticts.utils import NO_DEFAULT
 
 
 class TictsIOMixin:
-    def serealize(self, date_format='epoch'):
-        if date_format.lower() == 'epoch':
+    def serealize(self, date_format="epoch"):
+        if date_format.lower() == "epoch":
             keys = [key.value for key in self.index]
-        elif date_format.lower() in ['iso', 'isoformat']:
+        elif date_format.lower() in ["iso", "isoformat"]:
             keys = [key.isoformat() for key in self.index]
         else:
             msg = "Date serealize with date_format equal to '{}' is not implemented"
             raise NotImplementedError(msg.format(date_format))
 
         return {
-            'data': {key: val
-                     for key, val in zip(keys, self.values())},
-            'default': self.default
-            if self.default != NO_DEFAULT else 'no_default',
-            'name': self.name,
+            "data": dict(zip(keys, self.values())),
+            "default": self.default if self.default != NO_DEFAULT else "no_default",
+            "name": self.name,
         }
 
-    def to_json(self, path_or_buf, date_format='epoch', compression='infer'):
-        path_or_buf = pd.io.common._stringify_path(path_or_buf)
+    def to_json(self, path_or_buf, date_format="epoch", compression="infer"):
+        stringify_path = (
+            pd.io.common._stringify_path
+            if hasattr(pd.io.common, "_stringify_path")
+            else pd.io.common.stringify_path
+        )
+        path_or_buf = stringify_path(path_or_buf)
 
         s = json.dumps(self.serealize())
 
         if isinstance(path_or_buf, str):
-            fh, handles = pd.io.common._get_handle(
-                path_or_buf, 'w', compression=compression)
-            try:
-                fh.write(s)
-            finally:
-                fh.close()
+            if hasattr(pd.io.common, "_get_handle"):
+                fh, _ = pd.io.common._get_handle(
+                    path_or_buf, "w", compression=compression
+                )
+                try:
+                    fh.write(s)
+                finally:
+                    fh.close()
+
+            else:
+                fh = pd.io.common.get_handle(path_or_buf, "w", compression=compression)
+                try:
+                    fh.handle.write(s)
+                finally:
+                    fh.close()
+
         elif path_or_buf is None:
             return s
         else:
@@ -43,11 +56,11 @@ class TictsIOMixin:
 
     @classmethod
     def from_json(cls, path):
-        if not hasattr(path, 'read'):
+        if not hasattr(path, "read"):
             path = Path(path)
             if not path.exists():
-                raise Exception("'{}' does not exists.".format(path))
-            path = open(path, mode="r")
+                raise Exception(f"'{path}' does not exists.")
+            path = open(path)
 
         content = json.load(path)
         return cls(**content)
