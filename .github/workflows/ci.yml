@@ -50,8 +50,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu] # [ubuntu, macos, windows]
-        python-version: [3.10] #  ["3.9", "3.10", "3.11"]
+        os: [ubuntu, macos, windows]
+        python-version: ["3.9", "3.10", "3.11"]
 
     env:
       PYTHON: ${{ matrix.python-version }}
