@@ -34,11 +34,12 @@ dev = [
   #
   # testing libs:
   "coverage==7.4.*",
-  "pytest==8.1.*",
+  "pytest==8.4.*",
   "pytest-sugar==1.0.0",
   "pytest-mock==3.14.*",
   # "pytest-asyncio==0.23.*",
   # "dirty-equals",
+  "inline-snapshot==0.31.*",
   #
   # code quality:
   "pre-commit==3.7.*",
@@ -184,10 +185,17 @@ exclude_lines = [
 
 [tool.coverage.paths]
 source = [
-    'ticts/',
-    '/Users/runner/work/ticts/ticts/ticts/',
-    'D:\a\ticts\ticts\ticts',
+  'ticts/',
+  '/Users/runner/work/ticts/ticts/ticts/',
+  'D:\a\ticts\ticts\ticts',
 ]
+
+[tool.inline-snapshot]
+format-command = "ruff format --stdin-filename {filename}"
+
+[tool.inline-snapshot.shortcuts]
+review = ["review"]
+fix = ["create", "fix"]
 
 [tool.mypy]
 python_version = "3.11"

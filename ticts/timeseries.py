@@ -217,8 +217,34 @@ class TimeSeries(
 
     def __setitem__(self, key, value):
         if isinstance(key, slice):
-            return self.set_interval(key.start, key.stop, value)
-        if key in self._meta_keys:
+            if isinstance(value, TimeSeries):
+                start = key.start
+                end = key.stop
+
+                if start is None:
+                    start = MINTS
+                else:
+                    start = timestamp_converter(start, self.tz)
+
+                if end is None:
+                    end = MAXTS
+                else:
+                    end = timestamp_converter(end, self.tz)
+
+                end_in_index = end in self.index
+                end_value = self[end] if end >= self.lower_bound else (
+                    self.default if self._has_default else None
+                )
+
+                for ts_key in value.index:
+                    if start <= ts_key < end:
+                        self.data[ts_key] = value[ts_key]
+
+                if end < MAXTS and not end_in_index and end_value is not None:
+                    self.data[end] = end_value
+            else:
+                return self.set_interval(key.start, key.stop, value)
+        elif key in self._meta_keys:
             super().__setitem__(key, value)
         else:
             key = timestamp_converter(key, self.tz)

@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Any, Literal
 
 import pandas as pd
 
@@ -7,7 +8,10 @@ from ticts.utils import NO_DEFAULT
 
 
 class TictsIOMixin:
-    def serealize(self, date_format="epoch"):
+    def serialize(
+        self,
+        date_format: Literal["epoch", "iso", "isoformat"] = "epoch",
+    ) -> dict[str, Any]:
         if date_format.lower() == "epoch":
             keys = [key.value for key in self.index]
         elif date_format.lower() in ["iso", "isoformat"]:
@@ -21,6 +25,8 @@ class TictsIOMixin:
             "default": self.default if self.default != NO_DEFAULT else "no_default",
             "name": self.name,
         }
+
+    serealize = serialize  # legacy (mispelled beforehand)
 
     def to_json(self, path_or_buf, date_format="epoch", compression="infer"):
         stringify_path = (
