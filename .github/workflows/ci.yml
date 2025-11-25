@@ -144,7 +144,14 @@ jobs:
 
       - run: pip install coverage
 
-      - run: ls -la coverage
+      - name: Check coverage files exist
+        run: |
+          if [ ! -d coverage ] || [ -z "$(ls -A coverage)" ]; then
+            echo "No coverage files found"
+            exit 1
+          fi
+          ls -la coverage
+
       - run: coverage combine coverage
       - run: coverage report
       - run: coverage html --show-contexts --title "ticts coverage for ${{ github.sha }}"
