@@ -217,8 +217,24 @@ class TimeSeries(
 
     def __setitem__(self, key, value):
         if isinstance(key, slice):
-            return self.set_interval(key.start, key.stop, value)
-        if key in self._meta_keys:
+            if isinstance(value, TimeSeries):
+                start = key.start
+                end = key.stop
+
+                if start is None:
+                    start = MINTS
+                else:
+                    start = timestamp_converter(start, self.tz)
+
+                if end is None:
+                    end = MAXTS
+                else:
+                    end = timestamp_converter(end, self.tz)
+
+                self._set_slice_with_timeseries(start, end, value)
+            else:
+                return self.set_interval(key.start, key.stop, value)
+        elif key in self._meta_keys:
             super().__setitem__(key, value)
         else:
             key = timestamp_converter(key, self.tz)
@@ -359,6 +375,76 @@ class TimeSeries(
 
         self[start] = value
         self[end] = last_value
+
+    def _set_slice_with_timeseries(self, start, end, value):
+        """Set a slice with a TimeSeries value using overlay semantics.
+
+        Args:
+            start: Start timestamp (or MINTS)
+            end: End timestamp (or MAXTS)
+            value: TimeSeries to overlay in range [start, end)
+
+        The algorithm:
+        1. Special case ts[:] = other: full replacement
+        2. Delete all keys STRICTLY between start and end (open interval) - unless end = MAXTS
+        3. Keep start boundary if it exists in self
+        4. Add keys from value in range [start, end)
+        5. Handle gaps: add start key with value.default or None only if value is empty
+        6. Add end marker to restore step function after the range
+        """
+        if start == MINTS and end == MAXTS:
+            self.data.clear()
+            for ts_key in value.index:
+                self.data[ts_key] = value[ts_key]
+            if value._has_default:
+                self.default = value.default
+            return
+
+        end_in_index = end in self.index
+        end_value = (
+            self[end]
+            if end >= self.lower_bound
+            else (self.default if self._has_default else None)
+        )
+
+        if end < MAXTS:
+            keys_to_delete = [k for k in self.index if start < k < end]
+            for k in keys_to_delete:
+                del self.data[k]
+
+        has_keys_in_range = any(start <= k < end for k in value.index)
+        should_add_start_marker = (
+            value.empty
+            or (
+                end == MAXTS
+                and start > MINTS
+                and start not in value.index
+                and start not in self.index
+                and value._has_default
+            )
+            or (
+                end < MAXTS
+                and has_keys_in_range
+                and start not in value.index
+                and start not in self.index
+                and value._has_default
+                and not self._has_default
+            )
+        )
+
+        if should_add_start_marker:
+            if start not in self.index:
+                if value._has_default:
+                    self.data[start] = value.default
+                else:
+                    self.data[start] = None
+
+        for ts_key in value.index:
+            if start <= ts_key < end:
+                self.data[ts_key] = value[ts_key]
+
+        if end < MAXTS and not end_in_index:
+            self.data[end] = end_value
 
     def compact(self):
         """Convert this instance to a compact version: consecutive measurement of the
