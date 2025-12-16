@@ -6,6 +6,22 @@ from tests.conftest import CURRENT, HALFHOUR, ONEHOUR, ONEMIN
 from ticts import TimeSeries, testing
 
 
+class TestToSeries:
+    def test_to_series(self, smallts):
+        smallts.name = "SuperTS"
+        series = smallts.to_series()
+        assert isinstance(series, pd.Series)
+        assert series.name == "SuperTS"
+        assert series.index.freq == "1H"
+
+    def test_it_works_on_unevenly_spaced(self, otherts):
+        otherts.name = "SuperTS"
+        series = otherts.to_series()
+        assert isinstance(series, pd.Series)
+        assert series.name == "SuperTS"
+        assert series.index.freq is None
+
+
 class TestToDataFrame:
     def test_to_dataframe(self, smallts):
         smallts.name = "SuperTS"

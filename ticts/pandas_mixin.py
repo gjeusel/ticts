@@ -5,15 +5,18 @@ from ticts.utils import timestamp_converter
 
 
 class PandasMixin:
-    def to_dataframe(self):
-        df = pd.DataFrame(data={self.name: self.values()}, index=self.index)
+    def to_series(self) -> pd.Series:
+        series = pd.Series(data=self.values(), index=self.index, name=self.name)
 
         # Need at least 3 dates to infer frequency
-        if len(df.index) >= 3:
-            # Try to infer freq if is evenly-spaced to get the df.index.freq
-            df.index.freq = infer_freq(df.index)
+        if len(series.index) >= 3:
+            # Try to infer freq if is evenly-spaced to get the serie.index.freq
+            series.index.freq = infer_freq(series.index)
 
-        return df
+        return series
+
+    def to_dataframe(self) -> pd.DataFrame:
+        return self.to_series().to_frame()
 
     def sample(self, freq=None, start=None, end=None, index=None, interpolate=None):
         """Sample your timeseries into Evenly Spaced TimeSeries.
